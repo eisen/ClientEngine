@@ -12,76 +12,96 @@
 using namespace std;
 
 int main() {
-	Board b1;
-	int gametype;
-	int movemax = 0, noMoveCount = 0, moven;
-	TileState*** mymoves;
-	TileState** newb;
 
-	//initial functions
-	srand(time(NULL));
-	gametype = b1.init();
-	newb = b1.initBoard();
-	b1.setBoard(newb);
-	b1.display2(b1.tiles,(b1.turn));
-	b1.h2(b1.tiles,b1.turn);
-/*
-	int hval;
-	hval =b1.h2(b1.tiles,b1.turn);
-	cout << "Black Heuristic: " << hval <<endl;;
-	b1.turn = b1.changePiece(b1.turn);
-	hval =b1.h2(b1.tiles,b1.turn);
-	cout << "White Heuristic: " << hval <<endl;
-	b1.state = 1;
-*/
+    // construct the default board
+    Board gameObject;
 
-	while(b1.state != 1) {
+    int gameType       = 0;
+    int totalMoveCount = 0; 
+    int noMoveCount    = 0; 
+    int moveSelection  = 0;
 
-		mymoves = b1.legalMoves((b1.tiles),b1.turn);
-		movemax = b1.moveCount(mymoves);
+    spaceState *** availableMoves;
+    spaceState ** objectBoard;
 
-		if (movemax != 0) {
-			moven = b1.moveSelect(gametype, movemax);
-			newb = mymoves[moven-1];
-			b1.setBoard(newb);
-			b1.display2(b1.tiles,b1.changePiece(b1.turn));
-			//b1.h2(b1.tiles,b1.changePiece(b1.turn));
-			/*
-			hval =b1.h2(b1.tiles,b1.turn);
-			cout << "Black Heuristic: " << hval <<endl;;
-			b1.turn = b1.changePiece(b1.turn);
-			hval =b1.h2(b1.tiles,b1.turn);
-			cout << "White Heuristic: " << hval <<endl;
-			b1.turn = b1.changePiece(b1.turn);
-			*/
+    // randomizing rand() function based on time
+    srand(time(NULL));
 
-			noMoveCount = 0;
-			cout << endl;
-		}
-		else {
-			noMoveCount++;
-			if (noMoveCount >= 2)
-			{
-				b1.setState(1);
-			}
-			if (noMoveCount == 1)
-			{
-				cout << "Player " << b1.turn << " has no moves." << endl;
-				cout << "Skipping Turn: it is now Player " << b1.changePiece(b1.turn) << "'s turn" <<endl;
-				b1.display2(b1.tiles,b1.changePiece(b1.turn));
-			}
-		}
-		b1.switchTurn();
-		for(int k = 0; k < movemax; ++k) {
-			for (int l = 0;l<8;++l) {
-				delete [] mymoves[k][l];
-			}
-			delete [] mymoves[k];
-		}
-		delete [] mymoves;
+    // Game type to indicate if players are human or computer. Our game type will always be 3
+    gameType = gameObject.init();
 
-	}
-	b1.winCheck(b1.tiles);
-	cout << endl;
-	return 0;
+    // take in non-Default board or stick with constructor board
+    objectBoard = gameObject.initBoard();
+
+    // Set board to new board
+    gameObject.setBoard(objectBoard);
+
+    // Display the initial board and set turn to black
+    gameObject.display(gameObject.gameBoard,(gameObject.turn));
+
+    // While the game is in play (one player has available moves)
+    while(gameObject.state != 1) 
+    {
+        // return a full set of possible moves (max sized 64 moves)
+        availableMoves = gameObject.legalMoves((gameObject.gameBoard),gameObject.turn);
+        totalMoveCount = gameObject.moveCount(availableMoves);
+
+        // if the current player has at least 1 move
+        if (totalMoveCount != 0) 
+        {
+            // this function should be cut to request from the client VM
+            moveSelection = gameObject.moveSelect(gameType, totalMoveCount); 
+
+            // the new board is the old board with the selected move applied
+            // updated the board, set the object value and display it
+            objectBoard = availableMoves[moveSelection-1];
+            gameObject.setBoard(objectBoard);
+            gameObject.display(gameObject.gameBoard,gameObject.changePiece(gameObject.turn));
+
+            // reset the no move count
+            noMoveCount = 0;
+            cout << endl;
+        }
+
+        // the current count of moves is 0 for the current player
+        else 
+        {
+            noMoveCount++;
+            if (noMoveCount >= 2)
+            {
+                // Set State to game over since no one can play
+                gameObject.setState(1);
+            }
+            else if (noMoveCount == 1)
+            {
+                // Skip the current player's turn as there are no moves to play
+                cout << "Player " << gameObject.turn << " has no moves." << endl;
+                cout << "Skipping Turn: it is now Player " << gameObject.changePiece(gameObject.turn) << "'s turn" <<endl;
+                gameObject.display(gameObject.gameBoard,gameObject.changePiece(gameObject.turn));
+            }
+            else
+            {
+                // placed here for completeness this sound never happen
+                ;
+            }
+        }
+
+        // the current player has played and we switch the player's current turn
+        gameObject.switchTurn();
+
+        // delete the availableMoves for the current player which are dynamically allocated arrays
+        for(int k = 0; k < totalMoveCount; ++k) 
+        {
+            for (int l = 0;l<8;++l) 
+            {
+                delete [] availableMoves[k][l];
+            }
+            delete [] availableMoves[k];
+        }
+        delete [] availableMoves;
+    }
+
+    // check who won and report it to the user
+    gameObject.winCheck(gameObject.gameBoard);
+    return 0;
 }

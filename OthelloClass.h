@@ -1,41 +1,44 @@
 #include <string>
 #include <cstring>
 
-enum TileState{
-	EMPTY,
-	BLACK,
-	WHITE
+enum spaceState{
+    EMPTY,
+    BLACK,
+    WHITE
 };
 
 class Board
 {
 public:
-	TileState **tiles;
-	TileState turn;
-	int state;
+    spaceState ** gameBoard;
+    spaceState turn;
+    int state;
 
-	void setState(int);
-	TileState ** getBoard(char*);
-	TileState *** legalMoves(TileState **,TileState);
-	TileState *** AIMoves(TileState **,TileState);
-	int alphabeta(TileState**,int,int,int,TileState,TileState, int*, timeval, timeval);
-	TileState changePiece(TileState);
-	int h1(TileState**, TileState);
-	int h(TileState**,TileState);
-	int h2(TileState**,TileState);
-	int moveSelect(int,int);
-	int movesLeft(void);
-	void switchTurn(void);
-	TileState** pseudoplay(TileState**, int,int, TileState);
-	int moveCount(TileState ***);
-	int winCheck(TileState**);
-	int init(void);
-	TileState** initBoard(void);
-	void reset(int);
-	void display(void);
-	void display2(TileState**,TileState);
-	int isLegalMove(TileState **,TileState,int,int);
-	void setBoard(TileState **);
-	Board(void);	//constructor function
-	~Board(void); // destructor function
+    void setState(int);
+    spaceState ** getBoard(char*);
+    spaceState *** legalMoves(spaceState **,spaceState);
+    spaceState changePiece(spaceState);
+
+    
+    int movesLeft(void);
+    void switchTurn(void);
+    
+    int moveCount(spaceState ***);
+    int winCheck(spaceState**);
+    int init(void);
+    spaceState** initBoard(void);
+    void reset(int);
+    void display(spaceState**,spaceState);
+    int isLegalMove(spaceState **,spaceState,int,int);
+    void setBoard(spaceState **);
+    Board(void);    //constructor function
+    ~Board(void); // destructor function
+
+    // Select functions for AI computation and operation
+    // overall input is all the inputs to alphabeta
+    int moveSelect(int,int);
+    int alphabeta(spaceState**,int,int,int,spaceState,spaceState, int*, timeval, timeval);
+    spaceState *** AIMoves(spaceState **,spaceState);
+    spaceState ** pseudoplay(spaceState**, int,int, spaceState);
+    int heuristicFunction(spaceState **,spaceState);
 };
