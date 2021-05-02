@@ -5,8 +5,8 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
-#include <sys/time.h>
-#include <unistd.h>
+//#include <sys/time.h>
+//#include <unistd.h>
 #include "OthelloClass.h"
 
 using namespace std;

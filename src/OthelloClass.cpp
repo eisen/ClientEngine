@@ -6,8 +6,8 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
-#include <sys/time.h>
-#include <unistd.h>
+//#include <sys/time.h>
+//#include <unistd.h>
 #include "OthelloClass.h"
 #define NOHEURVAL 2000000000
 #define RETOVERHEAD 50
@@ -618,8 +618,8 @@ int Board::movesLeft(void)
 // This is the function that needs to be requested from the client to the server
 int Board::moveSelect(int gameType, int movemax)
 {
-    struct timeval start, end;
-    long mtime, seconds, useconds;
+    //struct timeval start, end;
+    //long mtime, seconds, useconds;
     int moveSelection = 0; // pass in &moveSelection for alphabet
     int tempmoveSelection = 0;
     int totalMovesLeft;
@@ -651,11 +651,11 @@ int Board::moveSelect(int gameType, int movemax)
 
         spaceState cplayer = turn;
         totalMovesLeft = movesLeft();
-        gettimeofday(&start,NULL);
-        gettimeofday(&end,NULL);
-        seconds = end.tv_sec - start.tv_sec;
-        useconds = end.tv_usec - start.tv_usec;
-        mtime = ((seconds) * 1000 + useconds/1000.0);
+        //gettimeofday(&start,NULL);
+        //gettimeofday(&end,NULL);
+        //seconds = end.tv_sec - start.tv_sec;
+        //useconds = end.tv_usec - start.tv_usec;
+        //mtime = ((seconds) * 1000 + useconds/1000.0);
 
         while (1) {
                 //figure out what moveSelection we should chose
@@ -663,7 +663,7 @@ int Board::moveSelect(int gameType, int movemax)
                     moveSelection = 1;
                     break;
                 }
-                hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection,start,end);
+                hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection);// , start, end);
                 if (hval == NOHEURVAL || depth > totalMovesLeft) {
                     break;
                 }
@@ -675,20 +675,20 @@ int Board::moveSelect(int gameType, int movemax)
 
         }
 
-        gettimeofday(&end,NULL);
-        seconds = end.tv_sec - start.tv_sec;
-        useconds = end.tv_usec - start.tv_usec;
-        mtime = ((seconds) * 1000 + useconds/1000.0);
+        //gettimeofday(&end,NULL);
+        //seconds = end.tv_sec - start.tv_sec;
+        //useconds = end.tv_usec - start.tv_usec;
+        //mtime = ((seconds) * 1000 + useconds/1000.0);
 
         cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
-        cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
+        //cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
     }
     return moveSelection;
 }
 
 // This is the alphabeta algorithm called by moveSelect
 // Move select will be ported to a separate piece of software which will be developed by the VM users
-int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceColor, spaceState pt, int* ind, timeval start, timeval end)
+int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceColor, spaceState pt, int* ind)//, timeval start, timeval end)
 {
     //ind is the pointer to moveSelection only passed in when first called
     int tempv;
@@ -697,14 +697,14 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     long mtime, seconds, useconds;
     spaceState *** nextMoves;
 
-    gettimeofday(&end,NULL);
-    seconds = end.tv_sec - start.tv_sec;
-    useconds = end.tv_usec - start.tv_usec;
-    mtime = ((seconds) * 1000 + useconds/1000.0);
+    //gettimeofday(&end,NULL);
+    //seconds = end.tv_sec - start.tv_sec;
+    //useconds = end.tv_usec - start.tv_usec;
+    //mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    if (mtime + RETOVERHEAD > moveTime) {
-        return NOHEURVAL;
-    }
+    //if (mtime + RETOVERHEAD > moveTime) {
+    //    return NOHEURVAL;
+    //}
 
     //delete AI moves somewhere where its not needed: after depth is searched?
     //modify AIMoves to only return a specific move number and if its NULL then
@@ -734,7 +734,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
         pt = changePiece(pt);
         while (nextMoves[i] != NULL)
         {
-            tempv = alphabeta(nextMoves[i],d-1,a,b,pieceColor,pt,NULL,start,end);
+            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL);//,start,end);
             if (v < tempv) {
                 v = tempv;
                 if (ind != NULL) {
@@ -763,7 +763,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
         pt = changePiece(pt);
         while (nextMoves[i] != NULL)
         {
-            tempv = alphabeta(nextMoves[i],d-1,a,b,pieceColor,pt,NULL,start,end);
+            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL);// , start, end);
             if (v >= tempv) {
                 v = tempv;
             }
