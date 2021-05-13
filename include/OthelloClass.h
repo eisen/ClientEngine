@@ -36,8 +36,8 @@ public:
 
     // Select functions for AI computation and operation
     // overall input is all the inputs to alphabeta
-    int moveSelect(int,int);
-    int alphabeta(spaceState**, int, int, int, spaceState, spaceState, int*);//, timeval, timeval);
+    int moveSelect(int);
+    int alphabeta(spaceState**, int, int, int, spaceState, spaceState, int*, timeval, timeval);
     spaceState *** AIMoves(spaceState **,spaceState);
     spaceState ** pseudoplay(spaceState**, int,int, spaceState);
     int heuristicFunction(spaceState **,spaceState);

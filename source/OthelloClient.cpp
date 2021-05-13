@@ -5,7 +5,6 @@
 //
 
 #include "sio_client.h"
-
 #include <functional>
 #include <iostream>
 #include <thread>
@@ -108,11 +107,22 @@ MAIN_FUNC
     sio::client h;
     connection_listener l(h);
     
+    std::cout << "" <<std::endl;
     h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
+    
+    std::cout << "" <<std::endl;
     h.set_close_listener(std::bind(&connection_listener::on_close, &l,std::placeholders::_1));
+    
+    std::cout << "" <<std::endl;
     h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
-    h.connect("http://127.0.0.1:3000");
+    
+    std::cout << "" <<std::endl;
+    h.connect("http://127.0.0.1:8080");
+    
+    std::cout << "" <<std::endl;
     _lock.lock();
+    
+    
     if(!connect_finish)
     {
         _cond.wait(_lock);
@@ -123,10 +133,15 @@ Login:
     string nickname;
     while (nickname.length() == 0) {
         HIGHLIGHT("Type your nickname:");
-        
-        getline(cin, nickname);
+        //getline(cin, nickname);
+        nickname = "eli";
+        HIGHLIGHT(nickname.length());
     }
-	current_socket->on("login", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp){
+	
+    HIGHLIGHT(nickname);
+
+    HIGHLIGHT("bind on login");
+    current_socket->on("login", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp){
         _lock.lock();
         participants = data->get_map()["numUsers"]->get_int();
         bool plural = participants !=1;
@@ -135,12 +150,22 @@ Login:
         _lock.unlock();
         current_socket->off("login");
     }));
+
+    HIGHLIGHT("emit add user");
     current_socket->emit("add user", nickname);
+
+    HIGHLIGHT("Locking");
+    HIGHLIGHT(participants);
+    
     _lock.lock();
     if (participants<0) {
         _cond.wait(_lock);
     }
+
+    HIGHLIGHT("Unlocking");
     _lock.unlock();
+    
+    HIGHLIGHT("Binding Events");
     bind_events();
     
     HIGHLIGHT("Start to chat,commands:\n'$exit' : exit chat\n'$nsp <namespace>' : change namespace");
@@ -180,6 +205,7 @@ Login:
             _lock.unlock();
         }
     }
+
     HIGHLIGHT("Closing...");
     h.sync_close();
     h.clear_con_listeners();

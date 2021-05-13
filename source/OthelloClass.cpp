@@ -6,9 +6,9 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
-//#include <sys/time.h>
-//#include <unistd.h>
-#include "OthelloClass.h"
+#include <sys/time.h>
+#include <unistd.h>
+#include "../include/OthelloClass.h"
 #define NOHEURVAL 2000000000
 #define RETOVERHEAD 50
 #define POSINF 2000000000
@@ -249,74 +249,25 @@ void Board::setState(int s)
 // also the time for the AI will be set to 2?
 int Board::init(void)
 {
-    char ans1 = '\0', ans2 = '\0';
     float inputTime = 0;
-    while (ans1 != 'y' && ans1 != 'Y' && ans1 != 'n' && ans1 != 'N')
+
+    cout << "How much time should the AI take on its turn (in seconds): " << flush;
+    //cin >> inputTime;
+    inputTime = 0.5;
+    cout << "1" << endl;
+
+    if(!inputTime || inputTime <= 0)
     {
-        cout << "is Black Human? (y/n): " << flush;
-        cin >> ans1;
+        cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
+    }
+    
+    else 
+    {
+        moveTime = (int)(1000*inputTime);
     }
 
-    while (ans2 != 'y' && ans2 != 'Y' && ans2 != 'n' && ans2 != 'N')
-    {
-        cout << "is White Human? (y/n): " << flush;
-        cin >> ans2;
-    }
-
-    if ((ans1 == 'y' || ans1 == 'Y') && (ans2 == 'y' || ans2 == 'Y')) {
-        cout << "Player 1 \033[47;30;7mBlack\033[0m is Human" << endl;
-        cout << "Player 2 \033[40;37;7mWhite\033[0m is Human" << endl<<endl;
-        return 0;
-    }
-    else if ((ans1 == 'y' || ans1 == 'Y') && (ans2 == 'n' || ans2 == 'N')) {
-        cout << "Player 1 \033[47;30;7mBlack\033[0m is Human" << endl;
-        cout << "Player 2 \033[40;37;7mWhite\033[0m is Computer" << endl <<endl;
-        cout << "How much time should the AI take on its turn (in seconds): " << flush;
-        cin >> inputTime;
-        if(!inputTime || inputTime <= 0)
-        {
-            cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
-        }
-        else {
-            moveTime = (int)(1000*inputTime);
-        }
-        cout << endl;
-        return 1;
-    }
-    else if ((ans1 == 'n' || ans1 == 'N') && (ans2 == 'y' || ans2 == 'Y')) {
-        cout << "Player 1 \033[47;30;7mBlack\033[0m is Computer" << endl;
-        cout << "Player 2 \033[40;37;7mWhite\033[0m is Human" << endl<<endl;
-        cout << "How much time should the AI take on its turn (in seconds): " << flush;
-        cin >> inputTime;
-        if(!inputTime || inputTime <= 0)
-        {
-            cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
-        }
-        else {
-            moveTime = (int)(1000*inputTime);
-        }
-        cout << endl;
-        return 2;
-    }
-    else if ((ans1 == 'n' || ans1 == 'N') && (ans2 == 'n' || ans2 == 'N')) {
-        cout << "Player 1 \033[47;30;7mBlack\033[0m is Computer" << endl;
-        cout << "Player 2 \033[40;37;7mWhite\033[0m is Computer" << endl<<endl;
-        cout << "How much time should the AI take on its turn (in seconds): " << flush;
-        cin >> inputTime;
-        if(!inputTime || inputTime <= 0)
-        {
-            cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
-        }
-        else {
-            moveTime = (int)(1000*inputTime);
-        }
-        cout << endl;
-        return 3;
-    }
-    else {
-        cout << "Unknown gameType" <<endl;
-        return 5;
-    }
+    cout << endl;
+    return 3;
 }
 
 // initializing the board if it is requested from the user
@@ -324,17 +275,18 @@ spaceState ** Board::initBoard()
 {
     char filename[100];
     cout << "Do you want to input a non-default inital board state? (N/y): " << flush;
-    cin.clear();
-    cin.ignore(10000, '\n');
-    if (tolower(cin.get()) == 'y')
-    {
-        cout << "Input the name of the file containing the board state: " << flush;
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cin >> filename;
-        gameBoard = getBoard(filename);
-        //get file name and fill in board to gameBoard
-    }
+    cout << "N" << endl;
+    // cin.clear();
+    // cin.ignore(10000, '\n');
+    // if (tolower(cin.get()) == 'y')
+    // {
+    //     cout << "Input the name of the file containing the board state: " << flush;
+    //     cin.clear();
+    //     cin.ignore(10000, '\n');
+    //     cin >> filename;
+    //     gameBoard = getBoard(filename);
+    //     //get file name and fill in board to gameBoard
+    // }
     return gameBoard;
 }
 
@@ -484,7 +436,7 @@ spaceState *** Board::legalMoves(spaceState** inputBoard, spaceState pieceColor)
                                         if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor) 
                                         {
                                             // we found a legal move
-                                            cout << (moveCounter+1) << ". move at (" << rowCounter << "," << columnCounter << ")" <<  endl;
+                                            // cout << (moveCounter+1) << ". move at (" << rowCounter << "," << columnCounter << ")" <<  endl;
                                             moves[moveCounter] = pseudoplay(inputBoard,rowCounter,columnCounter,pieceColor);
                                             moveCounter++;
                                             moves[moveCounter] = NULL;
@@ -616,79 +568,66 @@ int Board::movesLeft(void)
 // ----- EVERYTHING ABOVE THIS DOES NOT NEED TO BE MODIFIED ----- 
 
 // This is the function that needs to be requested from the client to the server
-int Board::moveSelect(int gameType, int movemax)
+int Board::moveSelect(int movemax)
 {
-    //struct timeval start, end;
-    //long mtime, seconds, useconds;
+    struct timeval start_t, end_t;
+    long mtime, seconds, useconds;
     int moveSelection = 0; // pass in &moveSelection for alphabet
     int tempmoveSelection = 0;
     int totalMovesLeft;
     string input;
 
-    if(gameType == 0 || (gameType == 1 && turn == BLACK) || (gameType == 2 && turn == WHITE))
-    {
-        // request input from the VM Client for human player move
-        cout << endl << "Player " << turn <<" Enter move: " << flush;
-        NewIn:
-        cin >> moveSelection;
-        if(!moveSelection || moveSelection < 1 || moveSelection > movemax)
-        {
-            cout << "Not a Valid Entry, Select another move: " << flush;
-            cin.clear();
-            cin.ignore(10000, '\n');
-            goto NewIn;
+    cout << endl << turn <<"'s turn: " << endl;
+
+    //prune goes in here and check time
+    int depth = 1;
+    int a = -1*POSINF;
+    int b = POSINF;
+    int hval;
+
+    spaceState cplayer = turn;
+    totalMovesLeft = movesLeft();
+    gettimeofday(&start_t,NULL);
+    gettimeofday(&end_t,NULL);
+    seconds = end_t.tv_sec - start_t.tv_sec;
+    useconds = end_t.tv_usec - start_t.tv_usec;
+    mtime = ((seconds) * 1000 + useconds/1000.0);
+
+    while (1) {
+        //figure out what moveSelection we should chose
+        if (movemax == 1) {
+            moveSelection = 1;
+            break;
         }
-    }
-    else if (gameType == 3 || (gameType == 2 && turn == BLACK) || (gameType == 1 && turn == WHITE))
-    {
-        cout << endl << "Computer " << turn <<"'s turn: " << endl;
-
-        //prune goes in here and check time
-        int depth = 1;
-        int a = -1*POSINF;
-        int b = POSINF;
-        int hval;
-
-        spaceState cplayer = turn;
-        totalMovesLeft = movesLeft();
-        //gettimeofday(&start,NULL);
-        //gettimeofday(&end,NULL);
-        //seconds = end.tv_sec - start.tv_sec;
-        //useconds = end.tv_usec - start.tv_usec;
-        //mtime = ((seconds) * 1000 + useconds/1000.0);
-
-        while (1) {
-                //figure out what moveSelection we should chose
-                if (movemax == 1) {
-                    moveSelection = 1;
-                    break;
-                }
-                hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection);// , start, end);
-                if (hval == NOHEURVAL || depth > totalMovesLeft) {
-                    break;
-                }
-                else {
-                    moveSelection = tempmoveSelection + 1;
-                    cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
-                    depth++;
-                }
-
+        hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection, start_t, end_t);
+        if (hval == NOHEURVAL || depth > totalMovesLeft) {
+            break;
+        }
+        else {
+            moveSelection = tempmoveSelection + 1;
+            if (depth > 5 && depth < 8)
+            {
+                cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
+            }
+            depth++;
         }
 
-        //gettimeofday(&end,NULL);
-        //seconds = end.tv_sec - start.tv_sec;
-        //useconds = end.tv_usec - start.tv_usec;
-        //mtime = ((seconds) * 1000 + useconds/1000.0);
-
-        cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
-        //cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
     }
+
+    gettimeofday(&end_t,NULL);
+    seconds = end_t.tv_sec - start_t.tv_sec;
+    useconds = end_t.tv_usec - start_t.tv_usec;
+    mtime = ((seconds) * 1000 + useconds/1000.0);
+
+    cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
+    cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
+
     return moveSelection;
 }
 
 // This is the alphabeta algorithm called by moveSelect
 // Move select will be ported to a separate piece of software which will be developed by the VM users
-int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceColor, spaceState pt, int* ind)//, timeval start, timeval end)
+int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceColor, spaceState pt, int* ind, timeval start_t, timeval end_t)
 {
     //ind is the pointer to moveSelection only passed in when first called
     int tempv;
@@ -697,14 +636,14 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     long mtime, seconds, useconds;
     spaceState *** nextMoves;
 
-    //gettimeofday(&end,NULL);
-    //seconds = end.tv_sec - start.tv_sec;
-    //useconds = end.tv_usec - start.tv_usec;
-    //mtime = ((seconds) * 1000 + useconds/1000.0);
+    gettimeofday(&end_t,NULL);
+    seconds = end_t.tv_sec - start_t.tv_sec;
+    useconds = end_t.tv_usec - start_t.tv_usec;
+    mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    //if (mtime + RETOVERHEAD > moveTime) {
-    //    return NOHEURVAL;
-    //}
+    if (mtime + RETOVERHEAD > moveTime) {
+        return NOHEURVAL;
+    }
 
     //delete AI moves somewhere where its not needed: after depth is searched?
     //modify AIMoves to only return a specific move number and if its NULL then
@@ -734,7 +673,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
         pt = changePiece(pt);
         while (nextMoves[i] != NULL)
         {
-            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL);//,start,end);
+            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL,start_t,end_t);
             if (v < tempv) {
                 v = tempv;
                 if (ind != NULL) {
@@ -763,7 +702,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
         pt = changePiece(pt);
         while (nextMoves[i] != NULL)
         {
-            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL);// , start, end);
+            tempv = alphabeta(nextMoves[i], d - 1, a, b, pieceColor, pt, NULL, start_t, end_t);
             if (v >= tempv) {
                 v = tempv;
             }

@@ -5,9 +5,9 @@
 #include <cstring>
 #include <ctime>
 #include <cmath>
-//#include <sys/time.h>
-//#include <unistd.h>
-#include "OthelloClass.h"
+#include <sys/time.h>
+#include <unistd.h>
+#include "../include/OthelloClass.h"
 
 using namespace std;
 
@@ -16,7 +16,6 @@ int main() {
     // construct the default board
     Board gameObject;
 
-    int gameType       = 0;
     int totalMoveCount = 0; 
     int noMoveCount    = 0; 
     int moveSelection  = 0;
@@ -28,7 +27,7 @@ int main() {
     srand(time(NULL));
 
     // Game type to indicate if players are human or computer. Our game type will always be 3
-    gameType = gameObject.init();
+    gameObject.init();
 
     // take in non-Default board or stick with constructor board
     objectBoard = gameObject.initBoard();
@@ -50,7 +49,7 @@ int main() {
         if (totalMoveCount != 0) 
         {
             // this function should be cut to request from the client VM
-            moveSelection = gameObject.moveSelect(gameType, totalMoveCount); 
+            moveSelection = gameObject.moveSelect(totalMoveCount); 
 
             // the new board is the old board with the selected move applied
             // updated the board, set the object value and display it
