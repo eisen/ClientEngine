@@ -11,6 +11,10 @@
 #include <mutex>
 #include <condition_variable>
 #include <string>
+#include <utility>
+#include <unordered_map>
+#include "../include/OthelloClass.h"
+
 #ifdef WIN32
 #define HIGHLIGHT(__O__) std::cout<<__O__<<std::endl
 #define EM(__O__) std::cout<<__O__<<std::endl
@@ -71,29 +75,82 @@ int timeout = 1;
 
 socket::ptr current_socket;
 
+string ToString(spaceState ** inputBoard)
+{
+    string strBoard = "";
+    for(int i; i < 8; i++)
+    {
+        for (int j; j < 8; j++)
+        {
+            strBoard = strBoard + to_string(inputBoard[i][j]);
+        }
+    }
+    return strBoard;
+}
+
+spaceState ** ToArray(string strBoard)
+{
+    spaceState ** gameBoard;
+    gameBoard = new spaceState *[8];
+
+    int charCount = 0;
+    
+    for (int i = 0; i < 8; i++) 
+    {
+        gameBoard[i] = new spaceState [8];
+    }
+    for(int i = 0;i<8;i++) 
+    {
+        for(int j=0;j<8;j++) 
+        {
+            gameBoard[i][j] = EMPTY;
+        }
+    }
+
+
+    for (string::size_type i = 0; i < strBoard.size(); i++) 
+    {
+        gameBoard[i / 8][i % 8] = static_cast<spaceState>(strBoard[i]-'0');
+    }
+
+    return gameBoard;
+
+}
+
 void bind_events()
 {
-	current_socket->on("set timeout", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
+    current_socket->on("set timeout", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
                            _lock.lock();
-                           string user = data->get_map()["username"]->get_string();
-                           string message = data->get_map()["message"]->get_string();
-                           EM(user<<":"<<message);
+                           string moveTimeout = data->get_map()["timeout"]->get_string();
+                           EM("moveTimeout set to " << moveTimeout << "Seconds");
                            _lock.unlock();
                        }));
     
     current_socket->on("set opponent",sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
                            _lock.lock();
-                           string user = data->get_map()["username"]->get_string();
-                           
-                           //     abc "
+                           string gameID = data->get_map()["game_id"]->get_string();
+                           string opponentName = data->get_map()["name"]->get_string();
+                           EM("Game ID set to " << gameID << " with opponent " <<opponentName);
                            _lock.unlock();
                        }));
     current_socket->on("make move", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
-                           _lock.lock();
-                           string user = data->get_map()["username"]->get_string();
+                            _lock.lock();
+                            string gameID = data->get_map()["game_id"]->get_string();
+                            spaceState ** in_board = ToArray(data->get_map()["board"]->get_string());
+                            string turnStr = data->get_map()["turn"]->get_string();
+                            spaceState turn = static_cast<spaceState>(stoi(turnStr));
+                            spaceState ** out_board = in_board;
+
+                            string out_boardStr = ToString(out_board);
+                            turnStr = to_string(static_cast<int>(turn) % 2 + 1);
+                            string data_out = gameID + turnStr + out_boardStr;
+
+                            // hook this up to the Othello Class to be able to calculate moves properly
+                            current_socket->emit("move", data_out);
+
                            _lock.unlock();
                        }));
 
