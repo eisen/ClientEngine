@@ -143,7 +143,63 @@ void bind_events()
                             spaceState ** in_board = ToArray(data->get_map()["board"]->get_string());
                             string turnStr = data->get_map()["turn"]->get_string();
                             spaceState turn = static_cast<spaceState>(stoi(turnStr));
-                            spaceState ** out_board = in_board;
+
+                            // hook this up to the Othello Class to be able to calculate moves properly
+                            Board othelloBoard;
+                            othelloBoard.setBoard(in_board);
+                            if (turn != othelloBoard.turn)
+                            {
+                                othelloBoard.switchTurn();
+                            }
+
+                            int totalMoveCount = 0; 
+                            int noMoveCount    = 0; 
+                            int moveSelection  = 0;
+                            spaceState *** availableMoves;
+                            spaceState ** objectBoard;
+                            
+                            // return a full set of possible moves (max sized 64 moves)
+                            availableMoves = othelloBoard.legalMoves(othelloBoard.gameBoard,othelloBoard.turn);
+                            totalMoveCount = othelloBoard.moveCount(availableMoves);
+
+                            // if the current player has at least 1 move
+                            if (totalMoveCount != 0) 
+                            {
+                                // this function should be cut to request from the client VM
+                                moveSelection = othelloBoard.moveSelect(totalMoveCount); 
+
+                                // the new board is the old board with the selected move applied
+                                // updated the board, set the object value and display it
+                                objectBoard = availableMoves[moveSelection-1];
+                                othelloBoard.setBoard(objectBoard);
+
+                                // reset the no move count
+                                noMoveCount = 0;
+                                cout << endl;
+                            }
+
+                            // the current count of moves is 0 for the current player
+                            else 
+                            {
+                                noMoveCount++;
+                                if (noMoveCount >= 2)
+                                {
+                                    // Set State to game over since no one can play
+                                    ;// emit game over here //othelloBoard.setState(1);
+                                }
+                                else if (noMoveCount == 1)
+                                {
+                                    // Skip the current player's turn as there are no moves to play
+                                    ;// emit pass here
+                                }
+                                else
+                                {
+                                    // placed here for completeness this sound never happen
+                                    ;
+                                }
+                            }
+
+                            spaceState ** out_board = othelloBoard.gameBoard; // change the in_board to Board.gameBoard
 
                             string out_boardStr = ToString(out_board);
                             turnStr = to_string(static_cast<int>(turn) % 2 + 1);
@@ -156,7 +212,6 @@ void bind_events()
                             data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
                             data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
 
-                            // hook this up to the Othello Class to be able to calculate moves properly
                             current_socket->emit("move", data_out);
 
                            _lock.unlock();
