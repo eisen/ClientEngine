@@ -13,6 +13,7 @@
 #include <string>
 #include <utility>
 #include <unordered_map>
+#include <map>
 #include "../include/OthelloClass.h"
 
 #ifdef WIN32
@@ -146,7 +147,14 @@ void bind_events()
 
                             string out_boardStr = ToString(out_board);
                             turnStr = to_string(static_cast<int>(turn) % 2 + 1);
-                            string data_out = gameID + turnStr + out_boardStr;
+                            //data_out->get_map()["game_id"]->set_string(gameID);
+
+                            message::ptr game_id_out = string_message::create(gameID);
+                            message::ptr board_out  = string_message::create(out_boardStr);
+                            message::ptr data_out  = object_message::create();
+
+                            data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
+                            data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
 
                             // hook this up to the Othello Class to be able to calculate moves properly
                             current_socket->emit("move", data_out);
