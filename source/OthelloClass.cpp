@@ -38,12 +38,12 @@ Board::Board(void)
 }
 
 // Default destructor for the board class
-Board::~Board(void) 
+Board::~Board(void)
 {
     ;
 }
 
-// is the input move one of the legal moves? 
+// is the input move one of the legal moves?
 // This function is used to determine the number to display on the board
 int Board::isLegalMove(spaceState ** inputBoard, spaceState pieceColor, int row, int column)
 {
@@ -56,40 +56,40 @@ int Board::isLegalMove(spaceState ** inputBoard, spaceState pieceColor, int row,
     int rowIterator        = 0;
     int moveCount          = 0;
 
-    for (rowCounter = 0;rowCounter<8;rowCounter++) 
+    for (rowCounter = 0;rowCounter<8;rowCounter++)
     {
-        for (columnCounter = 0;columnCounter<8;columnCounter++) 
+        for (columnCounter = 0;columnCounter<8;columnCounter++)
         {
-            if (inputBoard[rowCounter][columnCounter] == EMPTY) 
+            if (inputBoard[rowCounter][columnCounter] == EMPTY)
             {
-                for(xchange = -1;xchange < 2;xchange++) 
+                for(xchange = -1;xchange < 2;xchange++)
                 {
-                    for (ychange = -1;ychange < 2;ychange++) 
+                    for (ychange = -1;ychange < 2;ychange++)
                     {
                         //if tile is a valid board space
-                        if (rowCounter+xchange >= 0 && rowCounter+xchange <=7 && columnCounter+ychange >= 0 && columnCounter+ychange <=7 ) 
+                        if (rowCounter+xchange >= 0 && rowCounter+xchange <=7 && columnCounter+ychange >= 0 && columnCounter+ychange <=7 )
                         {
                             //if the next tile is empty or the same as the players piece
-                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] || 
-                               inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY) 
+                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] ||
+                               inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY)
                             {
                                 ;//do nothing since cant move do to this direction
                             }
                             else //the next tile is the opponents piece
                             {
-                                
+
                                 //search for a piece of the same type in a direction
-                                for (rowIterator=2;rowIterator<8;rowIterator++)  
-                                { 
+                                for (rowIterator=2;rowIterator<8;rowIterator++)
+                                {
                                     //if tile is a valid board space
-                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 && 
-                                       columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 ) 
+                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 &&
+                                       columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 )
                                     {
                                         // if a same piece is found in direction
-                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor) 
+                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor)
                                         {
                                             moveCount++;
-                                            if (rowCounter == row && columnCounter == column) 
+                                            if (rowCounter == row && columnCounter == column)
                                             {
                                                 legalMoveSelection = moveCount;
                                             }
@@ -98,12 +98,12 @@ int Board::isLegalMove(spaceState ** inputBoard, spaceState pieceColor, int row,
                                             goto NextBoardSpace;
                                         }
                                         //if empty spot found in direction
-                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY) 
+                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY)
                                         {
                                             break;
                                         }
                                     }
-                                    else 
+                                    else
                                     {
                                         break;
                                     }
@@ -145,7 +145,7 @@ void Board::display(spaceState ** inputBoard,spaceState pieceColor)
                             "\033[40;32;2;7m____________"
                             "\033[40;32;2;7m____________"
                             "\033[40;32;2;7m____________\033[0m\n";
-    
+
     // An individual spot display
     static char spot[] = "\033[40;32;2;7m ";
 
@@ -160,7 +160,7 @@ void Board::display(spaceState ** inputBoard,spaceState pieceColor)
 
     // White player move location display
     static char whiteMoveOption[] = "\033[40;32;2;7m";
-    
+
     // Empty board space display
     static char emptySpace[] = "\033[0m";
 
@@ -173,7 +173,7 @@ void Board::display(spaceState ** inputBoard,spaceState pieceColor)
     cout << topBorder;
 
     // for each row diplay the relevant row
-    for (int rowCounter = 0; rowCounter < 8; rowCounter++) 
+    for (int rowCounter = 0; rowCounter < 8; rowCounter++)
     {
         // print the top row
         cout << topRow;
@@ -182,19 +182,19 @@ void Board::display(spaceState ** inputBoard,spaceState pieceColor)
         cout << " " << rowCounter << " ";
 
         // display each column in the row accordingly
-        for (int columnCounter = 0; columnCounter < 8; columnCounter++) 
+        for (int columnCounter = 0; columnCounter < 8; columnCounter++)
         {
             // column empty space
             cout << "\033[40;32;2;7m|" << spot << emptySpace;
-            
+
             // if the game board shows there is a black piece in the current row / column board space
-            if (gameBoard[rowCounter][columnCounter] == BLACK) 
+            if (gameBoard[rowCounter][columnCounter] == BLACK)
             {
                 cout << blackPiece;
             }
 
             // else if the game board shows there is a white piece in the current row / column board space
-            else if (gameBoard[rowCounter][columnCounter] == WHITE) 
+            else if (gameBoard[rowCounter][columnCounter] == WHITE)
             {
                 cout << whitePiece;
             }
@@ -216,11 +216,11 @@ void Board::display(spaceState ** inputBoard,spaceState pieceColor)
                 displayStream << (moveNumber % 10);
                 numStr2 = displayStream.str();
 
-                if (pieceColor == WHITE) 
+                if (pieceColor == WHITE)
                 {
                     cout << blackMoveOption << numStr1 << numStr2;
                 }
-                else 
+                else
                 {
                     cout << whiteMoveOption << numStr1 << numStr2;
                 }
@@ -244,7 +244,7 @@ void Board::setState(int s)
 }
 
 // initialize the game by requesting information from the user and starting the game
-// this should really be automatic for the competition as both players will always be 
+// this should really be automatic for the competition as both players will always be
 // computers and the board will always be the default board
 // also the time for the AI will be set to 2?
 int Board::init(void)
@@ -260,8 +260,8 @@ int Board::init(void)
     {
         cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
     }
-    
-    else 
+
+    else
     {
         moveTime = (int)(1000*inputTime);
     }
@@ -373,9 +373,9 @@ spaceState ** Board::getBoard(char * filename)
 // set the object's board to the input board
 void Board::setBoard(spaceState ** inputBoard)
 {
-    for(int row = 0; row < 8; row++) 
+    for(int row = 0; row < 8; row++)
     {
-        for(int column = 0; column < 8; column++) 
+        for(int column = 0; column < 8; column++)
         {
             gameBoard[row][column] = inputBoard[row][column];
         }
@@ -403,37 +403,37 @@ spaceState *** Board::legalMoves(spaceState** inputBoard, spaceState pieceColor)
     int moveCounter   = 0;
 
     // go through the board and assemble the legal moves
-    for (rowCounter = 0;rowCounter<8;rowCounter++) 
+    for (rowCounter = 0;rowCounter<8;rowCounter++)
     {
-        for (columnCounter = 0;columnCounter<8;columnCounter++) 
+        for (columnCounter = 0;columnCounter<8;columnCounter++)
         {
             // if the current space is not empty it is not a legal move
-            if (inputBoard[rowCounter][columnCounter] == EMPTY) 
+            if (inputBoard[rowCounter][columnCounter] == EMPTY)
             {
-                for(xchange = -1;xchange < 2;xchange++) 
+                for(xchange = -1;xchange < 2;xchange++)
                 {
-                    for (ychange = -1;ychange < 2;ychange++) 
+                    for (ychange = -1;ychange < 2;ychange++)
                     {
                         //if the current space we are checking is a valid board space
-                        if (rowCounter+xchange >= 0 && rowCounter+xchange <=7 && columnCounter+ychange >= 0 && columnCounter+ychange <=7 ) 
+                        if (rowCounter+xchange >= 0 && rowCounter+xchange <=7 && columnCounter+ychange >= 0 && columnCounter+ychange <=7 )
                         {
                             //if the next space is empty or is the same as the current player's piece
-                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] || inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY) 
+                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] || inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY)
                             {
                                 ;//do nothing since cant move do to this direction
                             }
-                            
+
                             //the next tile is the opponents piece
-                            else 
+                            else
                             {
                                 //search for a piece of the same type in a direction
-                                for (rowIterator=2;rowIterator<8;rowIterator++) 
-                                { 
+                                for (rowIterator=2;rowIterator<8;rowIterator++)
+                                {
                                     //if the current space we are checking is a valid board space
-                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 && columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 ) 
+                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 && columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 )
                                     {
                                         //if a same piece is found in a certain direction
-                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor) 
+                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor)
                                         {
                                             // we found a legal move
                                             // cout << (moveCounter+1) << ". move at (" << rowCounter << "," << columnCounter << ")" <<  endl;
@@ -443,12 +443,12 @@ spaceState *** Board::legalMoves(spaceState** inputBoard, spaceState pieceColor)
                                             goto NextBoardSpace;
                                         }
                                         //if empty spot found in direction then this is not a valid move
-                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY) 
+                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY)
                                         {
                                             break;
                                         }
                                     }
-                                    else 
+                                    else
                                     {
                                         break;
                                     }
@@ -513,15 +513,15 @@ int Board::winCheck(spaceState** inputBoard)
     int whiteCount = 0;
     int blackCount = 0;
 
-    for(int row = 0; row < 8; row++) 
+    for(int row = 0; row < 8; row++)
     {
-        for(int column = 0; column < 8; column++) 
+        for(int column = 0; column < 8; column++)
         {
-            if (inputBoard[row][column] == WHITE) 
+            if (inputBoard[row][column] == WHITE)
             {
                 whiteCount++;
             }
-            else if (inputBoard[row][column] == BLACK) 
+            else if (inputBoard[row][column] == BLACK)
             {
                 blackCount++;
             }
@@ -532,17 +532,17 @@ int Board::winCheck(spaceState** inputBoard)
         cout << "black wins: " << blackCount << " - " << whiteCount <<  endl;
         return 1;
     }
-    else if (whiteCount > blackCount) 
+    else if (whiteCount > blackCount)
     {
         cout << "white wins: " << whiteCount << " - " << blackCount << endl;
         return 2;
     }
-    else if (whiteCount == blackCount) 
+    else if (whiteCount == blackCount)
     {
         cout << "tie: " << whiteCount << " - " << blackCount << endl;
         return 3;
     }
-    else 
+    else
     {
         return 0;
     }
@@ -552,11 +552,11 @@ int Board::winCheck(spaceState** inputBoard)
 int Board::movesLeft(void)
 {
     int numMovesLeft = 0;
-    for(int row = 0; row < 8; row++) 
+    for(int row = 0; row < 8; row++)
     {
-        for(int column = 0; column < 8; column++) 
+        for(int column = 0; column < 8; column++)
         {
-            if(gameBoard[row][column] == EMPTY) 
+            if(gameBoard[row][column] == EMPTY)
             {
                 numMovesLeft++;
             }
@@ -565,7 +565,7 @@ int Board::movesLeft(void)
     return numMovesLeft;
 }
 
-// ----- EVERYTHING ABOVE THIS DOES NOT NEED TO BE MODIFIED ----- 
+// ----- EVERYTHING ABOVE THIS DOES NOT NEED TO BE MODIFIED -----
 
 // This is the function that needs to be requested from the client to the server
 int Board::moveSelect(int movemax)
@@ -577,7 +577,7 @@ int Board::moveSelect(int movemax)
     int totalMovesLeft;
     string input;
 
-    cout << endl << turn <<"'s turn: " << endl;
+    //cout << endl << turn <<"'s turn: " << endl;
 
     //prune goes in here and check time
     int depth = 1;
@@ -607,7 +607,7 @@ int Board::moveSelect(int movemax)
             moveSelection = tempmoveSelection + 1;
             if (depth > 5 && depth < 8)
             {
-                cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
+                //cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
             }
             depth++;
         }
@@ -619,8 +619,8 @@ int Board::moveSelect(int movemax)
     useconds = end_t.tv_usec - start_t.tv_usec;
     mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
-    cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
+    //cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
+    //cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
 
     return moveSelection;
 }
@@ -732,7 +732,7 @@ spaceState *** Board::AIMoves(spaceState** inputBoard, spaceState pieceColor)
 {
     //pointer to a pointer to a pointer of an 64x8x8 spaceStates
     spaceState*** moves = new spaceState**[64];
-    for(int k = 0; k < 64; ++k) 
+    for(int k = 0; k < 64; ++k)
     {
         moves[k] = NULL;
     }
@@ -746,40 +746,40 @@ spaceState *** Board::AIMoves(spaceState** inputBoard, spaceState pieceColor)
     int rowIterator   = 0;
     int moveCounter   = 0;
 
-    for (rowCounter = 0;rowCounter<8;rowCounter++) 
+    for (rowCounter = 0;rowCounter<8;rowCounter++)
     {
-        for (columnCounter = 0;columnCounter<8;columnCounter++) 
+        for (columnCounter = 0;columnCounter<8;columnCounter++)
         {
-            if (inputBoard[rowCounter][columnCounter] == EMPTY) 
+            if (inputBoard[rowCounter][columnCounter] == EMPTY)
             {
-                for(xchange = -1;xchange < 2;xchange++) 
+                for(xchange = -1;xchange < 2;xchange++)
                 {
-                    for (ychange = -1;ychange < 2;ychange++) 
+                    for (ychange = -1;ychange < 2;ychange++)
                     {
 
                         //if tile is a valid board space
-                        if (rowCounter+xchange >= 0 && 
-                            rowCounter+xchange <=7 && 
-                            columnCounter+ychange >= 0 && 
-                            columnCounter+ychange <=7 ) 
+                        if (rowCounter+xchange >= 0 &&
+                            rowCounter+xchange <=7 &&
+                            columnCounter+ychange >= 0 &&
+                            columnCounter+ychange <=7 )
                         {
                             //if the next tile is empty or the same as the players piece
-                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] || 
-                               inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY) 
+                            if(pieceColor == inputBoard[rowCounter+xchange][columnCounter+ychange] ||
+                               inputBoard[rowCounter+xchange][columnCounter+ychange] == EMPTY)
                             {
                                 ; //do nothing since cant move do to this direction
                             }
                             //the next tile is the opponents piece
-                            else 
+                            else
                             {
                                 //search for a piece of the same type in a direction
-                                for (rowIterator = 2;rowIterator < 8; rowIterator++) 
+                                for (rowIterator = 2;rowIterator < 8; rowIterator++)
                                 {
                                     //if tile is a valid board space
-                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 && columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 ) 
+                                    if(rowCounter+rowIterator*xchange >= 0 && rowCounter+rowIterator*xchange <=7 && columnCounter+rowIterator*ychange >= 0 && columnCounter+rowIterator*ychange <=7 )
                                     {
                                         //if a same piece is found in direction
-                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor) 
+                                        if(inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == pieceColor)
                                         {
                                             moves[moveCounter] = pseudoplay(inputBoard,rowCounter,columnCounter,pieceColor);
                                             moveCounter++;
@@ -788,7 +788,7 @@ spaceState *** Board::AIMoves(spaceState** inputBoard, spaceState pieceColor)
                                         }
 
                                         //if empty spot found in direction
-                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY) 
+                                        else if (inputBoard[rowCounter+rowIterator*xchange][columnCounter+rowIterator*ychange] == EMPTY)
                                         {
                                             break;
                                         }
@@ -825,53 +825,53 @@ spaceState ** Board::pseudoplay(spaceState** inputBoard, int rowSelect,int colum
         pseudoboard[k] = new spaceState[8]();
     }
 
-    for (int k = 0; k < 8; k++) 
+    for (int k = 0; k < 8; k++)
     {
-        for (int l=0; l < 8; l++) 
+        for (int l=0; l < 8; l++)
         {
             pseudoboard[k][l] = inputBoard[k][l];
         }
     }
 
-    for(xchange = -1;xchange < 2;xchange++) 
+    for(xchange = -1;xchange < 2;xchange++)
     {
-        for (ychange = -1;ychange < 2;ychange++) 
+        for (ychange = -1;ychange < 2;ychange++)
         {
             //if tile is a valid board space
-            if (rowSelect+xchange >= 0 && 
-                rowSelect+xchange <= 7 && 
-                columnSelect+ychange >= 0 && 
-                columnSelect+ychange <= 7 ) 
+            if (rowSelect+xchange >= 0 &&
+                rowSelect+xchange <= 7 &&
+                columnSelect+ychange >= 0 &&
+                columnSelect+ychange <= 7 )
             {
                 //if the next tile is empty or the same as the players piece
-                if(pieceColor == inputBoard[rowSelect+xchange][columnSelect+ychange] || 
-                   inputBoard[rowSelect+xchange][columnSelect+ychange] == EMPTY) 
+                if(pieceColor == inputBoard[rowSelect+xchange][columnSelect+ychange] ||
+                   inputBoard[rowSelect+xchange][columnSelect+ychange] == EMPTY)
                 {
                     ; //do nothing since cant move do to this direction
                 }
                 //the next tile is the opponents piece
-                else 
+                else
                 {
                     //search for a piece of the same type in a direction
-                    for (rowCounter=2; rowCounter < 8; rowCounter++) 
-                    { 
+                    for (rowCounter=2; rowCounter < 8; rowCounter++)
+                    {
                         //if tile is a valid board space
-                        if(rowSelect+rowCounter*xchange >= 0 && 
-                           rowSelect+rowCounter*xchange <=7 && 
-                           columnSelect+rowCounter*ychange >= 0 && 
-                           columnSelect+rowCounter*ychange <=7 ) 
+                        if(rowSelect+rowCounter*xchange >= 0 &&
+                           rowSelect+rowCounter*xchange <=7 &&
+                           columnSelect+rowCounter*ychange >= 0 &&
+                           columnSelect+rowCounter*ychange <=7 )
                         {
                             //if a same piece is found in direction
-                            if(inputBoard[rowSelect+rowCounter*xchange][columnSelect+rowCounter*ychange] == pieceColor) 
+                            if(inputBoard[rowSelect+rowCounter*xchange][columnSelect+rowCounter*ychange] == pieceColor)
                             {
-                                for(columnCounter = 0; columnCounter < rowCounter;columnCounter++) 
+                                for(columnCounter = 0; columnCounter < rowCounter;columnCounter++)
                                 {
                                     pseudoboard[rowSelect+columnCounter*xchange][columnSelect+columnCounter*ychange] = pieceColor;
                                 }
                                 break;
                             }
                             //if empty spot found in direction
-                            else if (inputBoard[rowSelect+rowCounter*xchange][columnSelect+rowCounter*ychange] == EMPTY) 
+                            else if (inputBoard[rowSelect+rowCounter*xchange][columnSelect+rowCounter*ychange] == EMPTY)
                             {
                                 break;
                             }
