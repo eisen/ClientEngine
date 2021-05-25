@@ -252,7 +252,9 @@ MAIN_FUNC
     h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
 
     std::cout << "" <<std::endl;
-    h.connect("http://127.0.0.1:8080");
+    string server_IP = args[2];
+    std::cout << server_IP <<std::endl;
+    h.connect("http://13.57.33.218:8080");
 
     std::cout << "" <<std::endl;
 
