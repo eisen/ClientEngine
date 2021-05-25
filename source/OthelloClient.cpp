@@ -253,7 +253,7 @@ MAIN_FUNC
 
     std::cout << "" <<std::endl;
     string server_IP = args[2];
-    std::cout << server_IP <<std::endl;
+    std::cout << "connecting to: " << server_IP << std::endl;
     h.connect("http://13.57.33.218:8080");
 
     std::cout << "" <<std::endl;
