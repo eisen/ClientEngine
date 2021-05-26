@@ -1,12 +1,9 @@
-//
-//  sio_test_sample.cpp
-//
-//  Created by Melo Yao on 3/24/15.
-//
+// Othello Client Inferface
 
 #include "sio_client.h"
 #include <functional>
 #include <iostream>
+#include <fstream>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -17,22 +14,20 @@
 #include "../include/OthelloClass.h"
 
 #ifdef WIN32
-#define HIGHLIGHT(__O__) std::cout<<__O__<<std::endl
 #define EM(__O__) std::cout<<__O__<<std::endl
-
 #include <stdio.h>
 #include <tchar.h>
 #define MAIN_FUNC int _tmain(int argc, _TCHAR* argv[])
 #else
-#define HIGHLIGHT(__O__) std::cout<<"\e[1;31m"<<__O__<<"\e[0m"<<std::endl
 #define EM(__O__) std::cout<<"\e[1;30;1m"<<__O__<<"\e[0m"<<std::endl
-
 #define MAIN_FUNC int main(int argc ,const char* args[])
 #endif
 
 using namespace sio;
 using namespace std;
 std::mutex _lock;
+std::string gTeamName;
+std::string gOpponentName;
 
 std::condition_variable_any _cond;
 bool connect_finish = false;
@@ -132,19 +127,23 @@ void bind_events()
 {
     current_socket->on("set timeout", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
-                           _lock.lock();
-                           int moveTimeout = data->get_map()["timeout"]->get_int();
-                           EM("moveTimeout set to " << moveTimeout << " Seconds");
-                           _lock.unlock();
+                            _lock.lock();
+                            int moveTimeout = data->get_map()["timeout"]->get_int();
+                            EM("moveTimeout set to " << moveTimeout << " Seconds");
+                            _lock.unlock();
                        }));
 
     current_socket->on("set opponent",sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
-                           _lock.lock();
-                           string gameID = data->get_map()["game_id"]->get_string();
-                           string opponentName = data->get_map()["name"]->get_string();
-                           EM("Game ID set to " << gameID << " with opponent " <<opponentName);
-                           _lock.unlock();
+                            _lock.lock();
+                            string gameID = data->get_map()["game_id"]->get_string();
+                            gOpponentName = data->get_map()["name"]->get_string();
+                            EM("Game ID set to " << gameID << " with opponent " << gOpponentName);
+                            std::ofstream out;
+                            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+                            out << gOpponentName << " vs. " << gTeamName << " gameID: " << gameID << std::endl;
+                            out.close();
+                            _lock.unlock();
                        }));
     current_socket->on("make move", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
                        {
@@ -154,6 +153,11 @@ void bind_events()
                             spaceState turn = static_cast<spaceState>(data->get_map()["turn"]->get_int());
                             string turnStr = to_string(turn);
 
+                            std::ofstream out;
+                            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+                            out << turnStr << ":" << ToString(in_board) << std::endl;
+                            out.close();
+                            
                             // hook this up to the Othello Class to be able to calculate moves properly
                             Board othelloBoard;
                             othelloBoard.setBoard(in_board);
@@ -196,7 +200,10 @@ void bind_events()
 
                                 data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
                                 data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
-
+                                
+                                out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+                                out << to_string(turn % 2 + 1) << ":" << out_boardStr << std::endl;
+                                out.close();
                                 current_socket->emit("move", data_out);
                             }
                             // the current count of moves is 0 for the current player
@@ -206,6 +213,10 @@ void bind_events()
                                 message::ptr data_out  = object_message::create();
 
                                 data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
+                                
+                                out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+                                out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << std::endl;
+                                out.close();
 
                                 current_socket->emit("pass", data_out);
                             }
@@ -240,7 +251,8 @@ MAIN_FUNC
 {
 
     sio::client h;
-    connection_listener l(h, args[1]);
+    gTeamName = args[1];
+    connection_listener l(h, gTeamName);
 
     std::cout << "" <<std::endl;
     h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
@@ -253,8 +265,8 @@ MAIN_FUNC
 
     std::cout << "" <<std::endl;
     string server_IP = args[2];
-    std::cout << "connecting to: " << server_IP << std::endl;
-    h.connect("http://13.57.33.218:8080");
+    std::cout << "connecting to: " << server_IP << ":8080"<< std::endl;
+    h.connect("http://" + server_IP + ":8080");
 
     std::cout << "" <<std::endl;
 
