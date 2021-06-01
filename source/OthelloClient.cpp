@@ -1,5 +1,6 @@
 // Othello Client Inferface
 
+// Included Libraries for C++ functions
 #include "sio_client.h"
 #include <functional>
 #include <iostream>
@@ -13,25 +14,29 @@
 #include <map>
 #include "../include/OthelloClass.h"
 
+// Short hand macro functions for printouts and the main function call
 #ifdef WIN32
-#define EM(__O__) std::cout<<__O__<<std::endl
-#include <stdio.h>
-#include <tchar.h>
-#define MAIN_FUNC int _tmain(int argc, _TCHAR* argv[])
+//#define EM(__O__) std::cout<<__O__<<std::endl
+//#include <stdio.h>
+//#include <tchar.h>
 #else
 #define EM(__O__) std::cout<<"\e[1;30;1m"<<__O__<<"\e[0m"<<std::endl
-#define MAIN_FUNC int main(int argc ,const char* args[])
 #endif
 
+// namespace identifier to simplify lines of code
 using namespace sio;
 using namespace std;
+
+// global variables
 std::mutex _lock;
 std::string gTeamName;
 std::string gOpponentName;
-
 std::condition_variable_any _cond;
 bool connect_finish = false;
+int timeout = 1;
+socket::ptr current_socket;
 
+// Connection Listener class
 class connection_listener
 {
     sio::client &handler;
@@ -74,10 +79,6 @@ public:
     }
 };
 
-int timeout = 1;
-
-socket::ptr current_socket;
-
 string ToString(spaceState ** inputBoard)
 {
     string strBoard = "";
@@ -113,7 +114,6 @@ spaceState ** ToArray(string strBoard)
         }
     }
 
-
     for (string::size_type i = 0; i < strBoard.size(); i++)
     {
         gameBoard[i / 8][i % 8] = static_cast<spaceState>(strBoard[i]-'0');
@@ -126,128 +126,128 @@ spaceState ** ToArray(string strBoard)
 void bind_events()
 {
     current_socket->on("set timeout", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-                       {
-                            _lock.lock();
-                            int moveTimeout = data->get_map()["timeout"]->get_int();
-                            EM("moveTimeout set to " << moveTimeout << " Seconds");
-                            _lock.unlock();
-                       }));
+    {
+        _lock.lock();
+        int moveTimeout = data->get_map()["timeout"]->get_int();
+        EM("moveTimeout set to " << moveTimeout << " Seconds");
+        _lock.unlock();
+    }));
 
     current_socket->on("set opponent",sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-                       {
-                            _lock.lock();
-                            string gameID = data->get_map()["game_id"]->get_string();
-                            gOpponentName = data->get_map()["name"]->get_string();
-                            EM("Game ID set to " << gameID << " with opponent " << gOpponentName);
-                            std::ofstream out;
-                            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-                            out << gOpponentName << " vs. " << gTeamName << " gameID: " << gameID << std::endl;
-                            out.close();
-                            _lock.unlock();
-                       }));
+    {
+        _lock.lock();
+        string gameID = data->get_map()["game_id"]->get_string();
+        gOpponentName = data->get_map()["name"]->get_string();
+        EM("Game ID set to " << gameID << " with opponent " << gOpponentName);
+        std::ofstream out;
+        out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+        out << gOpponentName << " vs. " << gTeamName << " gameID: " << gameID << std::endl;
+        out.close();
+        _lock.unlock();
+    }));
+
     current_socket->on("make move", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-                       {
-                            _lock.lock();
-                            string gameID = data->get_map()["game_id"]->get_string();
-                            spaceState ** in_board = ToArray(data->get_map()["board"]->get_string());
-                            spaceState turn = static_cast<spaceState>(data->get_map()["turn"]->get_int());
-                            string turnStr = to_string(turn);
+    {
+        _lock.lock();
+        string gameID = data->get_map()["game_id"]->get_string();
+        spaceState ** in_board = ToArray(data->get_map()["board"]->get_string());
+        spaceState turn = static_cast<spaceState>(data->get_map()["turn"]->get_int());
+        string turnStr = to_string(turn);
 
-                            std::ofstream out;
-                            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-                            out << turnStr << ":" << ToString(in_board) << std::endl;
-                            out.close();
-                            
-                            // hook this up to the Othello Class to be able to calculate moves properly
-                            Board othelloBoard;
-                            othelloBoard.setBoard(in_board);
-                            if (turn != othelloBoard.turn)
-                            {
-                                othelloBoard.switchTurn();
-                            }
+        std::ofstream out;
+        out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+        out << turnStr << ":" << ToString(in_board) << std::endl;
+        out.close();
+        
+        // hook this up to the Othello Class to be able to calculate moves properly
+        Board othelloBoard;
+        othelloBoard.setBoard(in_board);
+        if (turn != othelloBoard.turn)
+        {
+            othelloBoard.switchTurn();
+        }
 
-                            int totalMoveCount = 0;
-                            int moveSelection  = 0;
-                            spaceState *** availableMoves;
-                            spaceState ** objectBoard;
+        int totalMoveCount = 0;
+        int moveSelection  = 0;
+        spaceState *** availableMoves;
+        spaceState ** objectBoard;
 
-                            // return a full set of possible moves (max sized 64 moves)
-                            availableMoves = othelloBoard.legalMoves(othelloBoard.gameBoard,othelloBoard.turn);
-                            totalMoveCount = othelloBoard.moveCount(availableMoves);
+        // return a full set of possible moves (max sized 64 moves)
+        availableMoves = othelloBoard.legalMoves(othelloBoard.gameBoard,othelloBoard.turn);
+        totalMoveCount = othelloBoard.moveCount(availableMoves);
 
-                            // if the current player has at least 1 move
-                            if (totalMoveCount != 0)
-                            {
-                                // this function should be cut to request from the client VM
-                                moveSelection = othelloBoard.moveSelect(totalMoveCount);
+        // if the current player has at least 1 move
+        if (totalMoveCount != 0)
+        {
+            // this function should be cut to request from the client VM
+            moveSelection = othelloBoard.moveSelect(totalMoveCount);
 
-                                // the new board is the old board with the selected move applied
-                                // updated the board, set the object value and display it
-                                objectBoard = availableMoves[moveSelection-1];
-                                othelloBoard.setBoard(objectBoard);
+            // the new board is the old board with the selected move applied
+            // updated the board, set the object value and display it
+            objectBoard = availableMoves[moveSelection-1];
+            othelloBoard.setBoard(objectBoard);
 
-                                // reset the no move count
-                                //cout << endl;
+            // reset the no move count
+            //cout << endl;
 
-                                spaceState ** out_board = othelloBoard.gameBoard; // change the in_board to Board.gameBoard
+            spaceState ** out_board = othelloBoard.gameBoard; // change the in_board to Board.gameBoard
 
-                                string out_boardStr = ToString(out_board);
-                                //data_out->get_map()["game_id"]->set_string(gameID);
+            string out_boardStr = ToString(out_board);
+            //data_out->get_map()["game_id"]->set_string(gameID);
 
-                                message::ptr game_id_out = string_message::create(gameID);
-                                message::ptr board_out  = string_message::create(out_boardStr);
-                                message::ptr data_out  = object_message::create();
+            message::ptr game_id_out = string_message::create(gameID);
+            message::ptr board_out  = string_message::create(out_boardStr);
+            message::ptr data_out  = object_message::create();
 
-                                data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
-                                data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
+            data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
+            data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
                                 
-                                out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-                                out << to_string(turn % 2 + 1) << ":" << out_boardStr << std::endl;
-                                out.close();
-                                current_socket->emit("move", data_out);
-                            }
+            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+            out << to_string(turn % 2 + 1) << ":" << out_boardStr << std::endl;
+            out.close();
+            current_socket->emit("move", data_out);
+        }
                             // the current count of moves is 0 for the current player
-                            else
-                            {
-                                message::ptr game_id_out = string_message::create(gameID);
-                                message::ptr data_out  = object_message::create();
+        else
+        {
+            message::ptr game_id_out = string_message::create(gameID);
+            message::ptr data_out  = object_message::create();
 
-                                data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
+            data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
                                 
-                                out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-                                out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << std::endl;
-                                out.close();
+            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
+            out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << std::endl;
+            out.close();
 
-                                current_socket->emit("pass", data_out);
-                            }
-
-                           _lock.unlock();
-                       }));
+            current_socket->emit("pass", data_out);
+        }
+        _lock.unlock();
+    }));
 
     current_socket->on("game ended", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-                       {
-                           _lock.lock();
-                           string game_id = data->get_map()["game_id"]->get_string();
-                           int black_count = data->get_map()["black_count"]->get_int();
-                           int white_count = data->get_map()["white_count"]->get_int();
-                           cout << "Game ended: B-" << black_count << " W-" << white_count << endl;
-                           _lock.unlock();
-                       }));
+    {
+        _lock.lock();
+        string game_id = data->get_map()["game_id"]->get_string();
+        int black_count = data->get_map()["black_count"]->get_int();
+        int white_count = data->get_map()["white_count"]->get_int();
+        cout << "Game ended: B-" << black_count << " W-" << white_count << endl;
+        _lock.unlock();
+    }));
 
     current_socket->on("tournament ended", sio::socket::event_listener_aux([&](string const& name, message::ptr const& data, bool isAck,message::list &ack_resp)
-                       {
-                           _lock.lock();
-                           string pname = data->get_map()["name"]->get_string();
-                           int game_count = data->get_map()["game_count"]->get_int();
-                           int win_count = data->get_map()["win_count"]->get_int();
-                           int tie_count = data->get_map()["tie_count"]->get_int();
-                           cout << "Tournament results for " << pname << " Games: " << game_count;
-                           cout << " Wins: " << win_count << " Ties: " << tie_count << endl;
-                           _lock.unlock();
-                       }));
+    {
+        _lock.lock();
+        string pname = data->get_map()["name"]->get_string();
+        int game_count = data->get_map()["game_count"]->get_int();
+        int win_count = data->get_map()["win_count"]->get_int();
+        int tie_count = data->get_map()["tie_count"]->get_int();
+        cout << "Tournament results for " << pname << " Games: " << game_count;
+        cout << " Wins: " << win_count << " Ties: " << tie_count << endl;
+        _lock.unlock();
+    }));
 }
 
-MAIN_FUNC
+int main(int argc ,const char* args[])
 {
 
     sio::client h;

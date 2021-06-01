@@ -40,5 +40,6 @@ public:
     int alphabeta(spaceState**, int, int, int, spaceState, spaceState, int*, timeval, timeval);
     spaceState *** AIMoves(spaceState **,spaceState);
     spaceState ** pseudoplay(spaceState**, int,int, spaceState);
-    int heuristicFunction(spaceState **,spaceState);
+    int heuristicFunction0(spaceState **,spaceState);
+    int heuristicFunction1(spaceState **,spaceState);
 };

@@ -9,13 +9,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "../include/OthelloClass.h"
-#define NOHEURVAL 2000000000
-#define RETOVERHEAD 50
-#define POSINF 2000000000
+#define NOHEURVAL 2147483646 // 2^31 -2
+#define POSINF 2147483645 // 2^31 - 3
+#define RETOVERHEAD 50 // overhead timing of return function in milliseconds
+#define DEFAULT_TIME_PER_MOVE 1
 
 using namespace std;
-static int moveTime = 2000;
-
+static int moveTime = 3000;
 
 // Default initializer for the board Class
 Board::Board(void)
@@ -244,28 +244,13 @@ void Board::setState(int s)
 }
 
 // initialize the game by requesting information from the user and starting the game
-// this should really be automatic for the competition as both players will always be
-// computers and the board will always be the default board
-// also the time for the AI will be set to 2?
 int Board::init(void)
 {
     float inputTime = 0;
-
     cout << "How much time should the AI take on its turn (in seconds): " << flush;
-    //cin >> inputTime;
-    inputTime = 0.5;
-    cout << "1" << endl;
-
-    if(!inputTime || inputTime <= 0)
-    {
-        cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
-    }
-
-    else
-    {
-        moveTime = (int)(1000*inputTime);
-    }
-
+    inputTime = DEFAULT_TIME_PER_MOVE;
+    cout << inputTime << endl;
+    moveTime = (int)(1000*inputTime);
     cout << endl;
     return 3;
 }
@@ -607,7 +592,7 @@ int Board::moveSelect(int movemax)
             moveSelection = tempmoveSelection + 1;
             if (depth > 5 && depth < 8)
             {
-                //cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
+                cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
             }
             depth++;
         }
@@ -651,10 +636,10 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     nextMoves = AIMoves(brd,pt);
     if (d == 0 || nextMoves[0] == NULL) {
         if (pieceColor == BLACK) {
-            v = heuristicFunction(brd,pieceColor);
+            v = heuristicFunction0(brd,pieceColor);
         }
         if (pieceColor == WHITE) {
-            v = heuristicFunction(brd,pieceColor);
+            v = heuristicFunction1(brd,pieceColor);
         }
         while (nextMoves[i] != NULL)
         {
@@ -890,10 +875,32 @@ spaceState ** Board::pseudoplay(spaceState** inputBoard, int rowSelect,int colum
 
 // input takes in the current player's turn and the current game board
 // output a zero sum value representative of the who is winning at that moment
-int Board::heuristicFunction(spaceState** inputBoard, spaceState pieceColor)
+int Board::heuristicFunction0(spaceState** inputBoard, spaceState pieceColor)
 {
     //ensure the heurstic is zero sum!
     int val = 0;
+    for(int i = 0;i<8;i++) {
+        for(int j=0;j<8;j++) {
+            if (inputBoard[i][j] == pieceColor)
+            {
+                val--;
+            }
+            else if (inputBoard[i][j] != EMPTY)
+            {
+                val++;
+            }
+        }
+    }
+
+    val = val*10 + (rand() % 10);
+    return val;
+}
+
+int Board::heuristicFunction1(spaceState** inputBoard, spaceState pieceColor)
+{
+    //ensure the heurstic is zero sum!
+    int val = 0;
+    int corner = 0;
     for(int i = 0;i<8;i++) {
         for(int j=0;j<8;j++) {
             if (inputBoard[i][j] == pieceColor)
@@ -906,6 +913,39 @@ int Board::heuristicFunction(spaceState** inputBoard, spaceState pieceColor)
             }
         }
     }
-    val = val*10 + (rand() % 10);
+    if (inputBoard[0][0] == pieceColor)
+    {
+        corner++;
+    }
+    else if (inputBoard[0][0] != EMPTY)
+    {
+        corner--;
+    }
+        if (inputBoard[0][0] == pieceColor)
+    {
+        corner++;
+    }
+    else if (inputBoard[0][0] != EMPTY)
+    {
+        corner--;
+    }
+        if (inputBoard[0][0] == pieceColor)
+    {
+        corner++;
+    }
+    else if (inputBoard[0][7] != EMPTY)
+    {
+        corner--;
+    }
+        if (inputBoard[7][0] == pieceColor)
+    {
+        corner++;
+    }
+    else if (inputBoard[7][7] != EMPTY)
+    {
+        corner--;
+    }
+
+    val = val*10 + (rand() % 10) + corner*300;
     return val;
 }
