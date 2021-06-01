@@ -17,6 +17,7 @@ include_directories("include")
 link_directories("lib")
 
 add_executable (OthelloGame source/OthelloGame.cpp source/OthelloClass.cpp include/OthelloClass.h)
+add_executable (Replayer source/OthelloReplayer.cpp source/OthelloClass.cpp include/OthelloClass.h)
 add_executable (OthelloClient source/OthelloClient.cpp source/OthelloClass.cpp include/OthelloClass.h include/sio_client.h include/sio_message.h)
 
 target_link_libraries (OthelloClient Threads::Threads)

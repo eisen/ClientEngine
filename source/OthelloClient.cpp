@@ -14,14 +14,9 @@
 #include <map>
 #include "../include/OthelloClass.h"
 
-// Short hand macro functions for printouts and the main function call
-#ifdef WIN32
-//#define EM(__O__) std::cout<<__O__<<std::endl
-//#include <stdio.h>
-//#include <tchar.h>
-#else
+// Short hand print out with color
 #define EM(__O__) std::cout<<"\e[1;30;1m"<<__O__<<"\e[0m"<<std::endl
-#endif
+
 
 // namespace identifier to simplify lines of code
 using namespace sio;
@@ -118,9 +113,37 @@ spaceState ** ToArray(string strBoard)
     {
         gameBoard[i / 8][i % 8] = static_cast<spaceState>(strBoard[i]-'0');
     }
-
     return gameBoard;
+}
 
+int IsFirstMove(spaceState ** input_board)
+{
+    int white_count = 0;
+    int black_count = 0;
+    
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            if (input_board[i][j] == BLACK)
+            {
+                black_count++;
+            }
+            else if (input_board[i][j] == WHITE)
+            {
+                white_count++;
+            }
+        }
+    }
+
+    if (white_count == 1 && black_count == 4)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 void bind_events()
@@ -138,10 +161,11 @@ void bind_events()
         _lock.lock();
         string gameID = data->get_map()["game_id"]->get_string();
         gOpponentName = data->get_map()["name"]->get_string();
+
         EM("Game ID set to " << gameID << " with opponent " << gOpponentName);
         std::ofstream out;
-        out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-        out << gOpponentName << " vs. " << gTeamName << " gameID: " << gameID << std::endl;
+        out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
+        out << gTeamName << " vs. " << gOpponentName << " gameID: " << gameID << std::endl;
         out.close();
         _lock.unlock();
     }));
@@ -155,8 +179,12 @@ void bind_events()
         string turnStr = to_string(turn);
 
         std::ofstream out;
-        out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-        out << turnStr << ":" << ToString(in_board) << std::endl;
+        out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
+        if (turn == WHITE && IsFirstMove(in_board))
+        {
+            out << "1:0000000000000000000000000001200000021000000000000000000000000000:their turn" << std::endl;
+        }
+        out << turnStr << ":" << ToString(in_board) << ":my turn" << std::endl;
         out.close();
         
         // hook this up to the Othello Class to be able to calculate moves properly
@@ -202,8 +230,8 @@ void bind_events()
             data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
             data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
                                 
-            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-            out << to_string(turn % 2 + 1) << ":" << out_boardStr << std::endl;
+            out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
+            out << to_string(turn % 2 + 1) << ":" << out_boardStr << ":their turn" << std::endl;
             out.close();
             current_socket->emit("move", data_out);
         }
@@ -215,8 +243,8 @@ void bind_events()
 
             data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
                                 
-            out.open(gTeamName + "_" + gOpponentName + "_"+ gameID + ".txt",std::ios::app);
-            out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << std::endl;
+            out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
+            out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << ":their turn - I pass" << std::endl;
             out.close();
 
             current_socket->emit("pass", data_out);

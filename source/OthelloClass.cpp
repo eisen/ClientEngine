@@ -252,7 +252,7 @@ int Board::init(void)
     cout << inputTime << endl;
     moveTime = (int)(1000*inputTime);
     cout << endl;
-    return 3;
+    return 0;
 }
 
 // initializing the board if it is requested from the user
@@ -260,18 +260,17 @@ spaceState ** Board::initBoard()
 {
     char filename[100];
     cout << "Do you want to input a non-default inital board state? (N/y): " << flush;
-    cout << "N" << endl;
-    // cin.clear();
-    // cin.ignore(10000, '\n');
-    // if (tolower(cin.get()) == 'y')
-    // {
-    //     cout << "Input the name of the file containing the board state: " << flush;
-    //     cin.clear();
-    //     cin.ignore(10000, '\n');
-    //     cin >> filename;
-    //     gameBoard = getBoard(filename);
-    //     //get file name and fill in board to gameBoard
-    // }
+    cin.clear();
+    cin.ignore(10000, '\n');
+    if (tolower(cin.get()) == 'y')
+    {
+        cout << "Input the name of the file containing the board state: " << flush;
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cin >> filename;
+        gameBoard = getBoard(filename);
+        //get file name and fill in board to gameBoard
+    }
     return gameBoard;
 }
 
@@ -883,11 +882,11 @@ int Board::heuristicFunction0(spaceState** inputBoard, spaceState pieceColor)
         for(int j=0;j<8;j++) {
             if (inputBoard[i][j] == pieceColor)
             {
-                val--;
+                val++;
             }
             else if (inputBoard[i][j] != EMPTY)
             {
-                val++;
+                val--;
             }
         }
     }
