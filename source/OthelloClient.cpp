@@ -153,6 +153,8 @@ void bind_events()
         _lock.lock();
         int moveTimeout = data->get_map()["timeout"]->get_int();
         EM("moveTimeout set to " << moveTimeout << " Seconds");
+        Board othelloBoard0;
+        othelloBoard0.moveTime_ = moveTimeout*1000;
         _lock.unlock();
     }));
 

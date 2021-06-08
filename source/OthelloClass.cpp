@@ -15,7 +15,7 @@
 #define DEFAULT_TIME_PER_MOVE 1
 
 using namespace std;
-static int moveTime = 3000;
+int Board::moveTime_ = DEFAULT_TIME_PER_MOVE;
 
 // Default initializer for the board Class
 Board::Board(void)
@@ -250,7 +250,7 @@ int Board::init(void)
     cout << "How much time should the AI take on its turn (in seconds): " << flush;
     inputTime = DEFAULT_TIME_PER_MOVE;
     cout << inputTime << endl;
-    moveTime = (int)(1000*inputTime);
+    moveTime_ = (int)(1000*inputTime);
     cout << endl;
     return 0;
 }
@@ -345,7 +345,7 @@ spaceState ** Board::getBoard(char * filename)
                     cout << "NOT A VALID ENTRY, Selecting AI move time to: 2 Seconds" << endl;
                 }
                 else {
-                    moveTime = (int)(1000*AI_Time);
+                    moveTime_ = (int)(1000*AI_Time);
                     cout << "Computer Time: " << AI_Time << " Seconds" << endl;
                 }
             }
@@ -625,7 +625,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     useconds = end_t.tv_usec - start_t.tv_usec;
     mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    if (mtime + RETOVERHEAD > moveTime) {
+    if (mtime + RETOVERHEAD > moveTime_) {
         return NOHEURVAL;
     }
 

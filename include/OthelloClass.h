@@ -13,6 +13,7 @@ public:
     spaceState ** gameBoard;
     spaceState turn;
     int state;
+    static int moveTime_;
 
     void setState(int);
     spaceState ** getBoard(char*);
