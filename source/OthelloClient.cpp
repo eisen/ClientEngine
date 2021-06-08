@@ -28,6 +28,7 @@ std::string gTeamName;
 std::string gOpponentName;
 std::condition_variable_any _cond;
 bool connect_finish = false;
+bool game_over = false;
 int timeout = 1;
 socket::ptr current_socket;
 
@@ -271,8 +272,10 @@ void bind_events()
         int game_count = data->get_map()["game_count"]->get_int();
         int win_count = data->get_map()["win_count"]->get_int();
         int tie_count = data->get_map()["tie_count"]->get_int();
-        cout << "Tournament results for " << pname << " Games: " << game_count;
-        cout << " Wins: " << win_count << " Ties: " << tie_count << endl;
+        cout << "Tournament results for " << pname << " Games: " << game_count << endl;
+        cout << "Wins: " << win_count  << " Losses: " << game_count - tie_count - win_count 
+             << " Ties: " << tie_count << endl;
+        game_over = true;
         _lock.unlock();
     }));
 }
@@ -311,7 +314,7 @@ int main(int argc ,const char* args[])
 	current_socket = h.socket();
     bind_events();
 
-    while(h.opened()){}
+    while(h.opened() && !game_over){}
 
     h.sync_close();
     h.clear_con_listeners();

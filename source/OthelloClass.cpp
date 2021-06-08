@@ -9,8 +9,8 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include "../include/OthelloClass.h"
-#define NOHEURVAL 2147483646 // 2^31 -2
-#define POSINF 2147483645 // 2^31 - 3
+#define NOHEURVAL 2147483645 // 2^31 -1
+#define POSINF 2147483646 // 2^31 - 2
 #define RETOVERHEAD 50 // overhead timing of return function in milliseconds
 #define DEFAULT_TIME_PER_MOVE 1
 
@@ -625,7 +625,7 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     useconds = end_t.tv_usec - start_t.tv_usec;
     mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    if (mtime + RETOVERHEAD > moveTime_) {
+    if ((mtime + RETOVERHEAD > moveTime_) && v != POSINF && v != -1*POSINF) {
         return NOHEURVAL;
     }
 
