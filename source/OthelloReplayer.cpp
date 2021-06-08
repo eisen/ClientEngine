@@ -48,6 +48,7 @@ string colorInt2Str(int colorInt)
     {
         return "White";
     }
+    return "Error";
 }
 
 int main(int argc ,const char* args[]) 
