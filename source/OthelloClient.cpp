@@ -64,13 +64,13 @@ public:
     }
     void on_close(client::close_reason const& reason)
     {
-        std::cout<<"sio closed "<<std::endl;
+        std::cout<<"Socket Connection Closed"<<std::endl;
         exit(0);
     }
 
     void on_fail()
     {
-        std::cout<<"sio failed "<<std::endl;
+        std::cout<<"Socket IO Failed"<<std::endl;
         exit(0);
     }
 };
