@@ -287,21 +287,15 @@ int main(int argc ,const char* args[])
     gTeamName = args[1];
     connection_listener l(h, gTeamName);
 
-    std::cout << "" <<std::endl;
     h.set_open_listener(std::bind(&connection_listener::on_connected, &l));
 
-    std::cout << "" <<std::endl;
     h.set_close_listener(std::bind(&connection_listener::on_close, &l,std::placeholders::_1));
 
-    std::cout << "" <<std::endl;
     h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
 
-    std::cout << "" <<std::endl;
     string server_IP = args[2];
     std::cout << "connecting to: " << server_IP << ":8080"<< std::endl;
     h.connect("http://" + server_IP + ":8080");
-
-    std::cout << "" <<std::endl;
 
     _lock.lock();
 
