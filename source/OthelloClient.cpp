@@ -293,9 +293,8 @@ int main(int argc ,const char* args[])
 
     h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
 
-    string server_IP = args[2];
-    std::cout << "connecting to: " << server_IP << ":8080"<< std::endl;
-    h.connect("http://" + server_IP + ":8080");
+    std::cout << "connecting to http://engine.rtx-hackathon.xyz:8080"<< std::endl;
+    h.connect("http://engine.rtx-hackathon.xyz:8080");
 
     _lock.lock();
 
