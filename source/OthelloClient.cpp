@@ -121,7 +121,7 @@ int IsFirstMove(spaceState ** input_board)
 {
     int white_count = 0;
     int black_count = 0;
-    
+
     for (int i = 0; i < 8; i++)
     {
         for (int j = 0; j < 8; j++)
@@ -189,7 +189,7 @@ void bind_events()
         }
         out << turnStr << ":" << ToString(in_board) << ":my turn" << std::endl;
         out.close();
-        
+
         // hook this up to the Othello Class to be able to calculate moves properly
         Board othelloBoard;
         othelloBoard.setBoard(in_board);
@@ -232,7 +232,7 @@ void bind_events()
 
             data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
             data_out->get_map().insert(pair<string,message::ptr>("board",board_out));
-                                
+
             out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
             out << to_string(turn % 2 + 1) << ":" << out_boardStr << ":their turn" << std::endl;
             out.close();
@@ -245,7 +245,7 @@ void bind_events()
             message::ptr data_out  = object_message::create();
 
             data_out->get_map().insert(pair<string,message::ptr>("game_id",game_id_out));
-                                
+
             out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
             out << to_string(turn % 2 + 1) << ":" << ToString(in_board) << ":their turn - I pass" << std::endl;
             out.close();
@@ -273,7 +273,7 @@ void bind_events()
         int win_count = data->get_map()["win_count"]->get_int();
         int tie_count = data->get_map()["tie_count"]->get_int();
         cout << "Tournament results for " << pname << " Games: " << game_count << endl;
-        cout << "Wins: " << win_count  << " Losses: " << game_count - tie_count - win_count 
+        cout << "Wins: " << win_count  << " Losses: " << game_count - tie_count - win_count
              << " Ties: " << tie_count << endl;
         game_over = true;
         _lock.unlock();
@@ -293,8 +293,8 @@ int main(int argc ,const char* args[])
 
     h.set_fail_listener(std::bind(&connection_listener::on_fail, &l));
 
-    std::cout << "connecting to http://engine.rtx-hackathon.xyz:8080"<< std::endl;
-    h.connect("http://engine.rtx-hackathon.xyz:8080");
+    std::cout << "connecting to http://engine.rmd-hackathon.xyz:8080"<< std::endl;
+    h.connect("http://engine.rmd-hackathon.xyz:8080");
 
     _lock.lock();
 
