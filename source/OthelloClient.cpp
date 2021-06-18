@@ -212,7 +212,7 @@ void bind_events()
         if (totalMoveCount != 0)
         {
             // this function should be cut to request from the client VM
-            moveSelection = othelloBoard.moveSelect(totalMoveCount);
+            moveSelection = othelloBoard.moveSelect(3, totalMoveCount);
 
             // the new board is the old board with the selected move applied
             // updated the board, set the object value and display it

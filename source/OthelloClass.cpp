@@ -246,13 +246,75 @@ void Board::setState(int s)
 // initialize the game by requesting information from the user and starting the game
 int Board::init(void)
 {
-    float inputTime = 0;
-    cout << "How much time should the AI take on its turn (in seconds): " << flush;
-    inputTime = DEFAULT_TIME_PER_MOVE;
-    cout << inputTime << endl;
+    char ans1 = '\0', ans2 = '\0';
+    float inputTime = DEFAULT_TIME_PER_MOVE;
     moveTime_ = (int)(1000*inputTime);
-    cout << endl;
-    return 0;
+    while (ans1 != 'y' && ans1 != 'Y' && ans1 != 'n' && ans1 != 'N')
+    {
+        cout << "is Black Human? (y/n): " << flush;
+        cin >> ans1;
+    }
+
+    while (ans2 != 'y' && ans2 != 'Y' && ans2 != 'n' && ans2 != 'N')
+    {
+        cout << "is White Human? (y/n): " << flush;
+        cin >> ans2;
+    }
+
+    if ((ans1 == 'y' || ans1 == 'Y') && (ans2 == 'y' || ans2 == 'Y')) {
+        cout << "Player 1 \033[47;30;7mBlack\033[0m is Human" << endl;
+        cout << "Player 2 \033[40;37;7mWhite\033[0m is Human" << endl<<endl;
+        return 0;
+    }
+    else if ((ans1 == 'y' || ans1 == 'Y') && (ans2 == 'n' || ans2 == 'N')) {
+        cout << "Player 1 \033[47;30;7mBlack\033[0m is Human" << endl;
+        cout << "Player 2 \033[40;37;7mWhite\033[0m is Computer" << endl <<endl;
+        cout << "How much time should the AI take on its turn (in seconds): " << flush;
+        cin >> inputTime;
+        if(!inputTime || inputTime <= 0)
+        {
+            cout << "NOT A VALID ENTRY, Selecting AI move time to: " << DEFAULT_TIME_PER_MOVE << " Seconds" << endl;
+        }
+        else {
+            moveTime_ = (int)(1000*inputTime);
+        }
+        cout << endl;
+        return 1;
+    }
+    else if ((ans1 == 'n' || ans1 == 'N') && (ans2 == 'y' || ans2 == 'Y')) {
+        cout << "Player 1 \033[47;30;7mBlack\033[0m is Computer" << endl;
+        cout << "Player 2 \033[40;37;7mWhite\033[0m is Human" << endl<<endl;
+        cout << "How much time should the AI take on its turn (in seconds): " << flush;
+        cin >> inputTime;
+        if(!inputTime || inputTime <= 0)
+        {
+            cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
+        }
+        else {
+            moveTime_ = (int)(1000*inputTime);
+        }
+        cout << endl;
+        return 2;
+    }
+    else if ((ans1 == 'n' || ans1 == 'N') && (ans2 == 'n' || ans2 == 'N')) {
+        cout << "Player 1 \033[47;30;7mBlack\033[0m is Computer" << endl;
+        cout << "Player 2 \033[40;37;7mWhite\033[0m is Computer" << endl<<endl;
+        cout << "How much time should the AI take on its turn (in seconds): " << flush;
+        cin >> inputTime;
+        if(!inputTime || inputTime <= 0)
+        {
+            cout << "NOT A VALID ENTRY, Selecting AI move time to: 5 Seconds" << endl;
+        }
+        else {
+            moveTime_ = (int)(1000*inputTime);
+        }
+        cout << endl;
+        return 3;
+    }
+    else {
+        cout << "Unknown gameType" <<endl;
+        return 5;
+    }
 }
 
 // initializing the board if it is requested from the user
@@ -552,7 +614,7 @@ int Board::movesLeft(void)
 // ----- EVERYTHING ABOVE THIS DOES NOT NEED TO BE MODIFIED -----
 
 // This is the function that needs to be requested from the client to the server
-int Board::moveSelect(int movemax)
+int Board::moveSelect(int gameType, int movemax)
 {
     struct timeval start_t, end_t;
     long mtime, seconds, useconds;
@@ -561,51 +623,65 @@ int Board::moveSelect(int movemax)
     int totalMovesLeft;
     string input;
 
-    //cout << endl << turn <<"'s turn: " << endl;
-
-    //prune goes in here and check time
-    int depth = 1;
-    int a = -1*POSINF;
-    int b = POSINF;
-    int hval;
-
-    spaceState cplayer = turn;
-    totalMovesLeft = movesLeft();
-    gettimeofday(&start_t,NULL);
-    gettimeofday(&end_t,NULL);
-    seconds = end_t.tv_sec - start_t.tv_sec;
-    useconds = end_t.tv_usec - start_t.tv_usec;
-    mtime = ((seconds) * 1000 + useconds/1000.0);
-
-    while (1) {
-        //figure out what moveSelection we should chose
-        if (movemax == 1) {
-            moveSelection = 1;
-            break;
+    if(gameType == 0 || (gameType == 1 && turn == BLACK) || (gameType == 2 && turn == WHITE))
+    {
+        // request input from the VM Client for human player move
+        cout << endl << "Player " << turn <<" Enter move: " << flush;
+        NewIn:
+        cin >> moveSelection;
+        if(!moveSelection || moveSelection < 1 || moveSelection > movemax)
+        {
+            cout << "Not a Valid Entry, Select another move: " << flush;
+            cin.clear();
+            cin.ignore(10000, '\n');
+            goto NewIn;
         }
-        hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection, start_t, end_t);
-        if (hval == NOHEURVAL || depth > totalMovesLeft) {
-            break;
-        }
-        else {
-            moveSelection = tempmoveSelection + 1;
-            if (depth > 5 && depth < 8)
-            {
-                cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
-            }
-            depth++;
-        }
-
     }
+    else if (gameType == 3 || (gameType == 2 && turn == BLACK) || (gameType == 1 && turn == WHITE))
+    {
+        //prune goes in here and check time
+        int depth = 1;
+        int a = -1*POSINF;
+        int b = POSINF;
+        int hval;
 
-    gettimeofday(&end_t,NULL);
-    seconds = end_t.tv_sec - start_t.tv_sec;
-    useconds = end_t.tv_usec - start_t.tv_usec;
-    mtime = ((seconds) * 1000 + useconds/1000.0);
+        spaceState cplayer = turn;
+        totalMovesLeft = movesLeft();
+        gettimeofday(&start_t,NULL);
+        gettimeofday(&end_t,NULL);
+        seconds = end_t.tv_sec - start_t.tv_sec;
+        useconds = end_t.tv_usec - start_t.tv_usec;
+        mtime = ((seconds) * 1000 + useconds/1000.0);
 
-    //cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
-    //cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
+        while (1) {
+            //figure out what moveSelection we should chose
+            if (movemax == 1) {
+                moveSelection = 1;
+                break;
+            }
+            hval = alphabeta(gameBoard, depth, a, b, turn, cplayer, &tempmoveSelection, start_t, end_t);
+            if (hval == NOHEURVAL || depth > totalMovesLeft) {
+                break;
+            }
+            else {
+                moveSelection = tempmoveSelection + 1;
+                if (depth > 5 && depth < 8)
+                {
+                    cout << "At depth: " << depth << " move number: " << moveSelection << " hval: " << hval << endl;
+                }
+                depth++;
+            }
 
+        }
+
+        gettimeofday(&end_t,NULL);
+        seconds = end_t.tv_sec - start_t.tv_sec;
+        useconds = end_t.tv_usec - start_t.tv_usec;
+        mtime = ((seconds) * 1000 + useconds/1000.0);
+
+        //cout << "At depth: " << depth-1 << ", Selecting Move: " << moveSelection << endl;
+        //cout << "Elapsed time: " << mtime << " milliseconds" <<endl;
+    }
     return moveSelection;
 }
 
