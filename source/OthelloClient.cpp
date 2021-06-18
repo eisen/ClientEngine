@@ -64,7 +64,8 @@ public:
     }
     void on_close(client::close_reason const& reason)
     {
-        std::cout<<"Socket Connection Closed"<<std::endl;
+
+        std::cout<<"Socket Connection Closed Close reason: " << reason << std::endl;
         exit(0);
     }
 
