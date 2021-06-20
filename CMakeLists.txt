@@ -8,6 +8,7 @@ cmake_policy(SET CMP0023 NEW)
 SET(AppName OthelloGame)
 SET(ClientName OthelloClient)
 
+set(CMAKE_CXX_FLAGS "-O3 -march=native")
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(Boost REQUIRED)

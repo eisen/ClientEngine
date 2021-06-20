@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <map>
 #include "../include/OthelloClass.h"
+#define GAMETYPE_ 1
 
 // Short hand print out with color
 #define EM(__O__) std::cout<<"\e[1;30;1m"<<__O__<<"\e[0m"<<std::endl
@@ -208,11 +209,16 @@ void bind_events()
         availableMoves = othelloBoard.legalMoves(othelloBoard.gameBoard,othelloBoard.turn);
         totalMoveCount = othelloBoard.moveCount(availableMoves);
 
+        if (GAMETYPE_ != 3)
+        {
+            othelloBoard.display(in_board, turn);
+        }
+
         // if the current player has at least 1 move
         if (totalMoveCount != 0)
         {
             // this function should be cut to request from the client VM
-            moveSelection = othelloBoard.moveSelect(3, totalMoveCount);
+            moveSelection = othelloBoard.moveSelect(GAMETYPE_, totalMoveCount);
 
             // the new board is the old board with the selected move applied
             // updated the board, set the object value and display it
@@ -237,6 +243,11 @@ void bind_events()
             out.open("GameLogs/" + gTeamName + "_" + gameID + ".txt",std::ios::app);
             out << to_string(turn % 2 + 1) << ":" << out_boardStr << ":their turn" << std::endl;
             out.close();
+
+            if (GAMETYPE_ != 3)
+            {
+                othelloBoard.display(out_board, othelloBoard.changePiece(turn));
+            }
             current_socket->emit("move", data_out);
         }
                             // the current count of moves is 0 for the current player
