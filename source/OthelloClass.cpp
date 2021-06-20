@@ -711,10 +711,10 @@ int Board::alphabeta(spaceState ** brd, int d, int a, int b, spaceState pieceCol
     nextMoves = AIMoves(brd,pt);
     if (d == 0 || nextMoves[0] == NULL) {
         if (pieceColor == BLACK) {
-            v = heuristicFunction0(brd,pieceColor);
+            v = heuristicFunction(brd,pieceColor);
         }
         if (pieceColor == WHITE) {
-            v = heuristicFunction1(brd,pieceColor);
+            v = heuristicFunction(brd,pieceColor);
         }
         while (nextMoves[i] != NULL)
         {
@@ -1023,4 +1023,454 @@ int Board::heuristicFunction1(spaceState** inputBoard, spaceState pieceColor)
 
     val = val*10 + (rand() % 10) + corner*300;
     return val;
+}
+
+int Board::heuristicFunction(spaceState** inputBoard, spaceState pieceColor)
+{
+    spaceState *** myMoves;
+    spaceState *** oppMoves;
+
+    //mp is my pieces
+    //op is opp pieces
+
+    //mc is my corner
+    //oc is opp corner
+
+    //ml is my corner closeness
+    //ol is opp corner closeness
+
+    //mm is my mobility
+    //om is opp mobility
+
+    //ms is my stable
+    //os is opp stable
+    //d is board benefit
+
+    int p, m, d, l, s, c;
+    int mp, op, mc, oc, ml, ol, mm, om, ms, os;
+    mp = op = mc = oc = ml = ol = mm = om = ms = os = d = 0;
+    spaceState opponent;
+    spaceState stable[8][8];
+    for(int i = 0; i < 8; i++) {
+        for(int j = 0; j < 8; j++) {
+            stable[i][j] = EMPTY;
+        }
+    }
+    opponent = changePiece(pieceColor);
+
+    int V[8][8];
+    //assigning board values
+    V[0][0] = V[0][7] = V[7][0] = V[7][7] = 20;
+    V[0][1] = V[1][0] = V[0][6] = V[6][0] = V[1][7] = V[7][1] = V[6][7] = V[7][6] = -3;
+    V[0][2] = V[2][0] = V[0][5] = V[5][0] = V[2][7] = V[7][2] = V[5][7] = V[7][5] = 11;
+    V[0][3] = V[3][0] = V[0][4] = V[4][0] = V[3][7] = V[7][3] = V[4][7] = V[7][4] = 8;
+    V[1][1] = V[6][6] = V[6][1] = V[1][6] = -7;
+    V[1][2] = V[2][1] = V[1][5] = V[5][1] = V[2][6] = V[6][2] = V[5][6] = V[6][5] = -4;
+    V[3][1] = V[1][3] = V[4][1] = V[1][4] = V[3][6] = V[6][3] = V[6][4] = V[4][6] = 1;
+    V[2][2] = V[2][3] = V[2][4] = V[2][5] = V[3][2] = V[4][2] = V[5][2] = 2;
+    V[5][5] = V[5][4] = V[5][3] = V[4][5] = V[3][5] = 2;
+    V[3][3] = V[4][4] = V[3][4] = V[4][3] = -3;
+
+    //V[0] = {20, -3, 11,  8,  8, 11, -3, 20};
+    //V[1] = {-3, -7, -4,  1,  1, -4, -7, -3};
+    //V[2] = {11, -4,  2,  2,  2,  2, -4, 11};
+    //V[3] = {8,   1,  2, -3, -3,  2,  1,  8};
+    //V[4] = {8,   1,  2, -3, -3,  2,  1,  8};
+    //V[5] = {11, -4,  2,  2,  2,  2, -4, 11};
+    //V[6] = {-3, -7, -4,  1,  1, -4, -7, -3};
+    //V[7] = {20, -3, 11,  8,  8, 11, -3, 20};
+
+    // Piece difference, frontier disks and disk squares
+    for(int i=0; i<8; i++) {
+        for(int j=0; j<8; j++)  {
+            if (inputBoard[i][j] == pieceColor)  {
+                d = d + V[i][j];
+                mp++;
+            }
+            else if (inputBoard[i][j] == opponent)  {
+                d = d - V[i][j];
+                op++;
+            }
+        }
+    }
+
+    // Corner occupancy
+    int maxcol;
+    if(inputBoard[0][0] == pieceColor) {
+        maxcol = 7;
+        mc++;
+        for(int i = 0; i < 8; i++) {
+            if (inputBoard[i][0] != pieceColor) {
+                break;
+            }
+            for (int j = 0; j < maxcol + 1;j++) {
+                if (inputBoard[i][j] == pieceColor) {
+                    stable[i][j] = pieceColor;
+                }
+                else {
+                    maxcol = min(maxcol,j - 1);
+                    break;
+                }
+            }
+        }
+    }
+    else if(inputBoard[0][0] == opponent) {
+        maxcol = 7;
+        oc++;
+        for(int i = 0; i < 8; i++) {
+            if (inputBoard[i][0] != opponent) {
+                break;
+            }
+            for (int j = 0; j < maxcol + 1;j++) {
+                if (inputBoard[i][j] == opponent) {
+                    stable[i][j] = opponent;
+                }
+                else {
+                    maxcol = min(maxcol,j - 1);
+                    break;
+                }
+            }
+        }
+    }
+    if(inputBoard[0][7] == pieceColor) {
+        maxcol = 0;
+        mc++;
+        for(int i = 0; i < 8; i++) {
+            if (inputBoard[i][7] != pieceColor) {
+                break;
+            }
+            for (int j = 7; j > maxcol-1;j--) {
+                if (inputBoard[i][j] == pieceColor) {
+                    stable[i][j] = pieceColor;
+                }
+                else {
+                    maxcol = max(maxcol,j + 1);
+                    break;
+                }
+            }
+        }
+    }
+    else if(inputBoard[0][7] == opponent) {
+        maxcol = 0;
+        oc++;
+        for(int i = 0; i < 8; i++) {
+            if (inputBoard[i][7] != opponent) {
+                break;
+            }
+            for (int j = 7; j > maxcol-1; j--) {
+                if (inputBoard[i][j] == opponent) {
+                    stable[i][j] = opponent;
+                }
+                else {
+                    maxcol = max(maxcol,j + 1);
+                    break;
+                }
+            }
+        }
+
+    }
+    if(inputBoard[7][0] == pieceColor) {
+        maxcol = 7;
+        mc++;
+        for(int i = 7; i > -1; i--) {
+            if (inputBoard[i][0] != pieceColor) {
+                break;
+            }
+            for (int j = 0; j < maxcol+1;j++) {
+                if (inputBoard[i][j] == pieceColor) {
+                    stable[i][j] = pieceColor;
+                }
+                else {
+                    maxcol = min(maxcol,j - 1);
+                    break;
+                }
+            }
+        }
+    }
+    else if(inputBoard[7][0] == opponent) {
+        maxcol = 7;
+        oc++;
+        for(int i = 7; i > -1; i--) {
+            if (inputBoard[i][0] != opponent) {
+                break;
+            }
+            for (int j = 0; j < maxcol+1;j++) {
+                if (inputBoard[i][j] == opponent) {
+                    stable[i][j] = opponent;
+                }
+                else {
+                    maxcol = min(maxcol, j- 1);
+                    break;
+                }
+            }
+        }
+    }
+    if(inputBoard[7][7] == pieceColor) {
+        maxcol = 0;
+        mc++;
+        for(int i = 7; i > -1; i--) {
+            if (inputBoard[i][7] != pieceColor) {
+                break;
+            }
+            for (int j = 7; j > maxcol-1;j--) {
+                if (inputBoard[i][j] == pieceColor) {
+                    stable[i][j] = pieceColor;
+                }
+                else {
+                    maxcol= max(maxcol,j+1);
+                    break;
+                }
+            }
+        }
+    }
+    else if(inputBoard[7][7] == opponent) {
+        maxcol = 0;
+        oc++;
+        for(int i = 7; i > -1; i--) {
+            if (inputBoard[i][7] != opponent) {
+                break;
+            }
+            for (int j = 7; j > maxcol-1;j--) {
+                if (inputBoard[i][j] == opponent) {
+                    stable[i][j] = opponent;
+                }
+                else {
+                    maxcol = max(maxcol,j+1);
+                    break;
+                }
+            }
+        }
+    }
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            if (stable[i][j] == pieceColor) {
+                ms++;
+            }
+            else if (stable[i][j] == opponent) {
+                os++;
+            }
+        }
+    }
+
+    // Corner closeness
+    if(inputBoard[0][0] == EMPTY)   {
+        if(inputBoard[0][1] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[0][1] == opponent) {
+            ol++;
+        }
+        if(inputBoard[1][1] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[1][1] == opponent) {
+            ol++;
+        }
+        if(inputBoard[1][0] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[1][0] == opponent) {
+            ol++;
+        }
+    }
+    if(inputBoard[0][7] == EMPTY)   {
+        if(inputBoard[0][6] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[0][6] == opponent) {
+            ol++;
+        }
+        if(inputBoard[1][6] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[1][6] == opponent) {
+            ol++;
+        }
+        if(inputBoard[1][7] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[1][7] == opponent) {
+            ol++;
+        }
+    }
+    if(inputBoard[7][0] == EMPTY)   {
+        if(inputBoard[7][1] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[7][1] == opponent){
+            ol++;
+        }
+        if(inputBoard[6][1] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[6][1] == opponent) {
+            ol++;
+        }
+        if(inputBoard[6][0] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[6][0] == opponent) {
+            ol++;
+        }
+    }
+    if(inputBoard[7][7] == EMPTY)  {
+        if(inputBoard[6][7] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[6][7] == opponent) {
+            ol++;
+        }
+        if(inputBoard[6][6] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[6][6] == opponent) {
+            ol++;
+        }
+        if(inputBoard[7][6] == pieceColor) {
+            ml++;
+        }
+        else if(inputBoard[7][6] == opponent) {
+            ol++;
+        }
+    }
+
+    // Mobility check whose moves array we are looking at
+    myMoves = AIMoves(inputBoard,pieceColor);
+    oppMoves = AIMoves(inputBoard,opponent);
+    mm = moveCount(myMoves);
+    om = moveCount(oppMoves);
+
+    for(int k = 0; k < mm; ++k) {
+        for (int l = 0;l<8;++l) {
+            delete [] myMoves[k][l];
+        }
+        delete [] myMoves[k];
+    }
+    delete [] myMoves;
+
+    for(int k = 0; k < om; ++k) {
+        for (int l = 0;l<8;++l) {
+            delete [] oppMoves[k][l];
+        }
+        delete [] oppMoves[k];
+    }
+    delete [] oppMoves;
+
+    int randm = 0;
+    randm = (rand() % 10) - 4 - (rand() % 2); // add randomness to change the game up
+
+    // final weighted score 633600 is the score for a perfect game
+    /*
+    mp = mp*900;
+    op = op*900;
+    ms = ms*900;
+    os = os*900;
+    mc = mc*14400;
+    oc = oc*14400;
+    mm = mm*1800;
+    om = om*1800;
+    ml = ml*4800;
+    ol = ol*4800;
+    d = d*160;
+    */
+    int score = 0;
+    if ((mp - op) > 0) {
+        p = 10000*(mp - op)/(mp+op);
+        if (p == 10000)
+        {
+            score = score + 600000000;
+        }
+    }
+    else if ((mp - op) < 0) {
+        p = -10000*(op - mp)/(mp+op);
+        if (p == -10000)
+        {
+            score = score - 600000000;
+        }
+    }
+    else {
+        p = 0;
+    }
+
+    if ((ms - os) > 0) {
+        s = 10000*(ms - os)/(ms+os);
+        if (ms > 32)
+        {
+            score = score + 600000000;
+        }
+    }
+    else if ((ms - os) < 0) {
+        s = -10000*(os - ms)/(ms+os);
+        if (os > 32)
+        {
+            score = score - 600000000;
+        }
+    }
+    else {
+        s = 0;
+    }
+
+    if ((mc - oc) > 0) {
+        c = 160000*(mc - oc)/(mc+oc);
+    }
+    else if ((mc - oc) < 0) {
+        c = -160000*(oc - mc)/(mc+oc);
+    }
+    else {
+        c = 0;
+    }
+
+    //reveresed for closeness
+    if ((ml - ol) > 0) {
+        l = -50000*(ml - ol)/(ml+ol);
+    }
+    else if ((ml - ol) < 0) {
+        l = 50000*(ol - ml)/(ml+ol);
+    }
+    else {
+        l = 0;
+    }
+
+    if ((mm - om) > 0) {
+        m = 20000*(mm - om)/(mm+om);
+    }
+    else if ((mm - om) < 0) {
+        m = -20000*(om - mm)/(mm+om);
+    }
+    else {
+        m = 0;
+    }
+    d = d*1700;
+
+    score = 10*p + 2000*s + 2000*c + 200*m + 400*l + 10*d + randm;
+
+    // add no move bonus
+    if (om == 0) {
+        score = score + 2000*160000;
+    }
+  if (mm == 0) {
+        score = score - 2000*160000;
+    }
+    //if both have no moves then they cancel
+
+
+    //cout heurstic block
+    /*
+    cout <<endl;
+    cout << "Player " << player << " has " << mp << " pieces taken" <<endl;
+    cout << "Player " << opponent << " has " << op << " pieces taken" <<endl;
+    cout << "Player " << player << " has " << mc << " corners" <<endl;
+    cout << "Player " << opponent << " has " << oc << " corners" <<endl;
+    cout << "Player " << player << " has " << ms << " stable pieces"<<endl;
+    cout << "Player " << opponent << " has " << os << " stable pieces"<<endl;
+    cout << "Player " << player << " has " << mm << " moves to play" <<endl;
+    cout << "Player " << opponent << " has " << om << " moves to play"<<endl;
+    cout << "Player " << player << " has " << ml << " corner closeness pieces"<<endl;
+    cout << "Player " << opponent << " has " << ol << " corner closness pieces"<<endl;
+    cout << "Random Number Generated: " << randm <<endl;
+    cout << "Board Value Sum for player " << player << " is: " << d <<endl;
+    cout << "Final Score: " << score << endl;
+    */
+
+    return score;
 }

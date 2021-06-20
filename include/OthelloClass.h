@@ -43,4 +43,5 @@ public:
     spaceState ** pseudoplay(spaceState**, int,int, spaceState);
     int heuristicFunction0(spaceState **,spaceState);
     int heuristicFunction1(spaceState **,spaceState);
+    int heuristicFunction(spaceState **,spaceState);
 };
